@@ -10,21 +10,23 @@ import type { SyncAction } from "./config-diff.js";
 
 export interface ApplyResult {
   applied: number;
+  removed: number;
   failed: number;
   errors: Array<{ server: string; client: ClientType; error: string }>;
 }
 
 /**
- * applySyncActions — write "add" actions to each client config.
+ * applySyncActions — write "add" and "remove" actions to each client config.
  * Skips "extra" and "ok" actions. Catches per-client errors and continues.
  */
 export async function applySyncActions(
   actions: SyncAction[],
   clients: Map<ClientType, ClientHandler>
 ): Promise<ApplyResult> {
-  const result: ApplyResult = { applied: 0, failed: 0, errors: [] };
-  const addActions = actions.filter((a) => a.action === "add" && a.entry);
+  const result: ApplyResult = { applied: 0, removed: 0, failed: 0, errors: [] };
 
+  // Handle "add" actions
+  const addActions = actions.filter((a) => a.action === "add" && a.entry);
   for (const action of addActions) {
     const handler = clients.get(action.client);
     if (!handler || !action.entry) {
@@ -39,6 +41,32 @@ export async function applySyncActions(
     try {
       await handler.addServer(action.server, action.entry);
       result.applied++;
+    } catch (err) {
+      result.failed++;
+      result.errors.push({
+        server: action.server,
+        client: action.client,
+        error: String(err),
+      });
+    }
+  }
+
+  // Handle "remove" actions
+  const removeActions = actions.filter((a) => a.action === "remove");
+  for (const action of removeActions) {
+    const handler = clients.get(action.client);
+    if (!handler) {
+      result.failed++;
+      result.errors.push({
+        server: action.server,
+        client: action.client,
+        error: "No handler available for client",
+      });
+      continue;
+    }
+    try {
+      await handler.removeServer(action.server);
+      result.removed++;
     } catch (err) {
       result.failed++;
       result.errors.push({

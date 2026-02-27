@@ -3,6 +3,7 @@ import { resolveServer, detectSource, parseEnvFlags } from "./server-resolver.js
 import { addEntry, findLockfile } from "./lockfile.js";
 import { computeIntegrity } from "./registry.js";
 import type { ClientHandler, ServerEntry } from "../clients/types.js";
+import { tryLoadVaultSecrets, offerVaultSave } from "./installer-vault-helpers.js";
 
 export interface InstallOptions {
   client?: string;
@@ -73,9 +74,15 @@ export async function installServer(
     selectedClients = clients.filter((c) => (chosen as string[]).includes(c.type));
   }
 
-  // 4. Collect env vars
+  // 4. Collect env vars — priority: --env flags > vault > prompt
   const providedEnv = parseEnvFlags(options.env);
-  const collectedEnv: Record<string, string> = { ...providedEnv };
+
+  // Load vault secrets silently; vault fills gaps that --env didn't provide
+  const vaultEnv = await tryLoadVaultSecrets(metadata.name);
+  const collectedEnv: Record<string, string> = { ...vaultEnv, ...providedEnv };
+
+  // Track vars entered interactively (not from vault or --env) for vault save offer
+  const newlyEnteredVars: Record<string, string> = {};
 
   const requiredVars = metadata.envVars.filter((e) => e.required && !(e.name in collectedEnv));
   for (const envVar of requiredVars) {
@@ -93,6 +100,7 @@ export async function installServer(
       process.exit(0);
     }
     collectedEnv[envVar.name] = val as string;
+    newlyEnteredVars[envVar.name] = val as string;
   }
 
   // 5. Build ServerEntry
@@ -134,6 +142,9 @@ export async function installServer(
 
   const lockPath = findLockfile() ?? "mcpman.lock (global)";
   p.log.success(`Lockfile updated: ${lockPath}`);
+
+  // 8. Offer to save newly entered vars to vault
+  await offerVaultSave(metadata.name, newlyEnteredVars, options.yes ?? false);
 
   p.outro(`${metadata.name}@${metadata.version} installed to ${clientTypes.join(", ")}`);
 }

@@ -10,6 +10,7 @@ import {
   computeDiff,
   computeDiffFromClient,
   reconstructServerEntry,
+  type DiffOptions,
 } from "../src/core/config-diff.js";
 import { applySyncActions } from "../src/core/sync-engine.js";
 
@@ -167,6 +168,48 @@ describe("computeDiff()", () => {
     expect(adds).toHaveLength(1);
     expect(adds[0].client).toBe("cursor");
   });
+
+  it("without --remove, extra servers remain 'extra' (informational)", () => {
+    const lockfile = makeLockfile({}); // empty lockfile
+    const configs = new Map<ClientType, ClientConfig>([
+      ["vscode", makeConfig({ "orphan-server": { command: "node" } })],
+    ]);
+
+    const actions = computeDiff(lockfile, configs);
+    const extras = actions.filter((a) => a.action === "extra");
+    const removes = actions.filter((a) => a.action === "remove");
+    expect(extras).toHaveLength(1);
+    expect(removes).toHaveLength(0);
+  });
+
+  it("with options.remove=true, extra servers become 'remove' actions", () => {
+    const lockfile = makeLockfile({}); // empty lockfile
+    const configs = new Map<ClientType, ClientConfig>([
+      ["vscode", makeConfig({ "orphan-server": { command: "node" } })],
+    ]);
+
+    const actions = computeDiff(lockfile, configs, { remove: true });
+    const removes = actions.filter((a) => a.action === "remove");
+    const extras = actions.filter((a) => a.action === "extra");
+    expect(removes).toHaveLength(1);
+    expect(removes[0].server).toBe("orphan-server");
+    expect(removes[0].client).toBe("vscode");
+    expect(extras).toHaveLength(0);
+  });
+
+  it("with options.remove=true, 'add' and 'ok' actions are unaffected", () => {
+    const lockfile = makeLockfile({
+      "needed-server": makeLockEntry({ clients: ["cursor"] }),
+    });
+    const configs = new Map<ClientType, ClientConfig>([
+      ["cursor", makeConfig({ "orphan-server": { command: "node" } })], // missing needed, has orphan
+    ]);
+
+    const actions = computeDiff(lockfile, configs, { remove: true });
+    expect(actions.find((a) => a.action === "add" && a.server === "needed-server")).toBeTruthy();
+    expect(actions.find((a) => a.action === "remove" && a.server === "orphan-server")).toBeTruthy();
+    expect(actions.find((a) => a.action === "extra")).toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -305,7 +348,92 @@ describe("applySyncActions()", () => {
     const handlers = new Map<ClientType, ClientHandler>();
     const result = await applySyncActions([], handlers);
     expect(result.applied).toBe(0);
+    expect(result.removed).toBe(0);
     expect(result.failed).toBe(0);
     expect(result.errors).toHaveLength(0);
+  });
+
+  it("calls removeServer for 'remove' actions and returns removed count", async () => {
+    const removeServer = vi.fn(async () => {});
+    const handler = makeHandler("claude-desktop");
+    handler.removeServer = removeServer;
+    const handlers = new Map<ClientType, ClientHandler>([["claude-desktop", handler]]);
+
+    const actions = [
+      {
+        server: "orphan-server",
+        client: "claude-desktop" as ClientType,
+        action: "remove" as const,
+      },
+    ];
+
+    const result = await applySyncActions(actions, handlers);
+    expect(removeServer).toHaveBeenCalledOnce();
+    expect(removeServer).toHaveBeenCalledWith("orphan-server");
+    expect(result.removed).toBe(1);
+    expect(result.applied).toBe(0);
+    expect(result.failed).toBe(0);
+  });
+
+  it("records failure non-fatally when removeServer throws", async () => {
+    const removeServer = vi.fn(async () => { throw new Error("remove failed"); });
+    const handler = makeHandler("vscode");
+    handler.removeServer = removeServer;
+    const handlers = new Map<ClientType, ClientHandler>([["vscode", handler]]);
+
+    const actions = [
+      { server: "bad-server", client: "vscode" as ClientType, action: "remove" as const },
+      { server: "other-server", client: "vscode" as ClientType, action: "remove" as const },
+    ];
+
+    // Both remove actions attempted even after first failure
+    const result = await applySyncActions(actions, handlers);
+    expect(removeServer).toHaveBeenCalledTimes(2);
+    expect(result.removed).toBe(0);
+    expect(result.failed).toBe(2);
+    expect(result.errors[0].server).toBe("bad-server");
+    expect(result.errors[0].error).toContain("remove failed");
+  });
+
+  it("records failure for 'remove' when handler not found", async () => {
+    const handlers = new Map<ClientType, ClientHandler>(); // empty
+
+    const actions = [
+      { server: "orphan", client: "windsurf" as ClientType, action: "remove" as const },
+    ];
+
+    const result = await applySyncActions(actions, handlers);
+    expect(result.removed).toBe(0);
+    expect(result.failed).toBe(1);
+    expect(result.errors[0].server).toBe("orphan");
+  });
+
+  it("handles both 'add' and 'remove' actions in same call", async () => {
+    const addServer = vi.fn(async () => {});
+    const removeServer = vi.fn(async () => {});
+    const handler = makeHandler("cursor", addServer);
+    handler.removeServer = removeServer;
+    const handlers = new Map<ClientType, ClientHandler>([["cursor", handler]]);
+
+    const actions = [
+      {
+        server: "new-server",
+        client: "cursor" as ClientType,
+        action: "add" as const,
+        entry: { command: "npx" },
+      },
+      {
+        server: "stale-server",
+        client: "cursor" as ClientType,
+        action: "remove" as const,
+      },
+    ];
+
+    const result = await applySyncActions(actions, handlers);
+    expect(addServer).toHaveBeenCalledOnce();
+    expect(removeServer).toHaveBeenCalledOnce();
+    expect(result.applied).toBe(1);
+    expect(result.removed).toBe(1);
+    expect(result.failed).toBe(0);
   });
 });

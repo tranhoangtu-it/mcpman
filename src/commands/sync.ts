@@ -4,6 +4,7 @@
  *
  * Flags:
  *   --dry-run   Preview only, do not write
+ *   --remove    Remove servers in clients that are not in the lockfile
  *   --source    Use a specific client as source of truth instead of lockfile
  *   --yes       Skip confirmation prompt
  */
@@ -35,6 +36,11 @@ export default defineCommand({
     "dry-run": {
       type: "boolean",
       description: "Preview changes without applying them",
+      default: false,
+    },
+    remove: {
+      type: "boolean",
+      description: "Remove extra servers not in lockfile",
       default: false,
     },
     source: {
@@ -69,6 +75,7 @@ export default defineCommand({
     }
 
     // Compute diff
+    const diffOptions = { remove: args.remove };
     let actions: SyncAction[];
     if (sourceClient) {
       if (!configs.has(sourceClient)) {
@@ -76,10 +83,10 @@ export default defineCommand({
         process.exit(1);
       }
       p.log.info(`Using ${CLIENT_DISPLAY[sourceClient]} as source of truth`);
-      actions = computeDiffFromClient(sourceClient, configs);
+      actions = computeDiffFromClient(sourceClient, configs, diffOptions);
     } else {
       const lockfile = readLockfile();
-      actions = computeDiff(lockfile, configs);
+      actions = computeDiff(lockfile, configs, diffOptions);
     }
 
     // Display diff table
@@ -87,8 +94,9 @@ export default defineCommand({
 
     const addCount = actions.filter((a) => a.action === "add").length;
     const extraCount = actions.filter((a) => a.action === "extra").length;
+    const removeCount = actions.filter((a) => a.action === "remove").length;
 
-    if (addCount === 0 && extraCount === 0) {
+    if (addCount === 0 && removeCount === 0 && extraCount === 0) {
       p.outro(pc.green("All clients are in sync."));
       process.exit(0);
     }
@@ -96,6 +104,7 @@ export default defineCommand({
     // Summary line
     const parts: string[] = [];
     if (addCount > 0) parts.push(pc.green(`${addCount} to add`));
+    if (removeCount > 0) parts.push(pc.red(`${removeCount} to remove`));
     if (extraCount > 0) parts.push(pc.yellow(`${extraCount} extra (informational)`));
     p.log.info(parts.join("  ·  "));
 
@@ -104,15 +113,18 @@ export default defineCommand({
       process.exit(1);
     }
 
-    if (addCount === 0) {
+    if (addCount === 0 && removeCount === 0) {
       p.outro(pc.dim("No additions needed. Extra servers left untouched."));
       process.exit(1);
     }
 
     // Confirm before applying
     if (!args.yes) {
+      const actionParts: string[] = [];
+      if (addCount > 0) actionParts.push(`${addCount} addition(s)`);
+      if (removeCount > 0) actionParts.push(`${removeCount} removal(s)`);
       const confirmed = await p.confirm({
-        message: `Apply ${addCount} addition(s) to client configs?`,
+        message: `Apply ${actionParts.join(" and ")} to client configs?`,
         initialValue: true,
       });
       if (p.isCancel(confirmed) || !confirmed) {
@@ -129,9 +141,12 @@ export default defineCommand({
     if (result.applied > 0) {
       p.log.success(`Added ${result.applied} server(s) to client configs.`);
     }
+    if (result.removed > 0) {
+      p.log.success(`Removed ${result.removed} server(s) from client configs.`);
+    }
     if (result.failed > 0) {
       for (const e of result.errors) {
-        p.log.error(`Failed to add "${e.server}" to ${e.client}: ${e.error}`);
+        p.log.error(`Failed to sync "${e.server}" on ${e.client}: ${e.error}`);
       }
     }
 
@@ -163,11 +178,12 @@ function printDiffTable(actions: SyncAction[]): void {
   console.log("");
 }
 
-function formatAction(action: "add" | "extra" | "ok"): [string, string] {
+function formatAction(action: "add" | "extra" | "remove" | "ok"): [string, string] {
   switch (action) {
-    case "add":   return [pc.green("+"), pc.green("missing — will add")];
-    case "extra": return [pc.yellow("?"), pc.yellow("extra (not in lockfile)")];
-    case "ok":    return [pc.dim("·"), pc.dim("in sync")];
+    case "add":    return [pc.green("+"), pc.green("missing — will add")];
+    case "extra":  return [pc.yellow("?"), pc.yellow("extra (not in lockfile)")];
+    case "remove": return [pc.red("–"), pc.red("extra — will remove")];
+    case "ok":     return [pc.dim("·"), pc.dim("in sync")];
   }
 }
 

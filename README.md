@@ -35,9 +35,9 @@ mcpman install @modelcontextprotocol/server-filesystem
 - **Registry-aware** — resolves packages from npm, Smithery, or GitHub URLs
 - **Lockfile** — tracks installed servers in `mcpman.lock` for reproducible setups
 - **Health checks** — verifies runtimes, env vars, and server connectivity with `doctor`
-- **Encrypted secrets** — store API keys in an AES-256 encrypted vault instead of plaintext JSON
-- **Config sync** — keep server configs consistent across all your AI clients
-- **Security audit** — scan servers for vulnerabilities with trust scoring
+- **Encrypted secrets** — store API keys in an AES-256 encrypted vault instead of plaintext JSON; auto-loads during install
+- **Config sync** — keep server configs consistent across all your AI clients; `--remove` cleans extras
+- **Security audit** — scan servers for vulnerabilities with trust scoring; `--fix` auto-updates vulnerable packages
 - **Auto-update** — get notified when server updates are available
 - **Interactive prompts** — guided installation with env var configuration
 - **No extra daemon** — pure CLI, works anywhere Node ≥ 20 runs
@@ -108,7 +108,7 @@ mcpman secrets list my-server
 mcpman secrets remove my-server OPENAI_API_KEY
 ```
 
-Secrets are stored in `~/.mcpman/vault.enc` using AES-256-CBC encryption with PBKDF2 key derivation.
+Secrets are stored in `~/.mcpman/vault.enc` using AES-256-CBC encryption with PBKDF2 key derivation. During `install`, vault secrets are auto-loaded to pre-fill env vars, and new credentials can be saved after installation.
 
 ### `sync`
 
@@ -118,7 +118,14 @@ Sync MCP server configs across all detected AI clients.
 mcpman sync              # sync all servers to all clients
 mcpman sync --dry-run    # preview changes without applying
 mcpman sync --source cursor  # use Cursor config as source of truth
+mcpman sync --remove     # remove servers not in lockfile from clients
 ```
+
+**Options:**
+- `--dry-run` — preview changes without applying
+- `--source <client>` — use a specific client config as source of truth
+- `--remove` — remove extra servers from clients that aren't tracked in lockfile
+- `--yes` — skip confirmation prompts
 
 ### `audit [server]`
 
@@ -128,9 +135,13 @@ Scan installed servers for security vulnerabilities and compute trust scores.
 mcpman audit             # audit all servers
 mcpman audit my-server   # audit specific server
 mcpman audit --json      # machine-readable output
+mcpman audit --fix       # auto-update vulnerable servers
+mcpman audit --fix --yes # auto-update without confirmation
 ```
 
 Trust score (0–100) based on: vulnerability count, download velocity, package age, publish frequency, and maintainer signals.
+
+The `--fix` flag checks for newer versions of vulnerable npm packages, updates them, and re-scans to verify the fixes.
 
 ### `update [server]`
 
@@ -152,8 +163,9 @@ mcpman update --check    # check only, don't apply
 | Lockfile | `mcpman.lock` | None | None |
 | Health checks | Runtime + env + process | None | None |
 | Encrypted secrets | AES-256 vault | None | None |
-| Config sync | Cross-client | None | None |
-| Security audit | Trust scoring | None | None |
+| Config sync | Cross-client + `--remove` | None | None |
+| Security audit | Trust scoring + auto-fix | None | None |
+| CI/CD | GitHub Actions | None | None |
 | Auto-update | Version check + notify | None | None |
 | Registry sources | npm + Smithery + GitHub | Smithery only | npm only |
 | Interactive setup | Yes | Partial | No |

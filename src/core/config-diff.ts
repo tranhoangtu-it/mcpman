@@ -7,7 +7,7 @@
 import type { ClientConfig, ClientType, ServerEntry } from "../clients/types.js";
 import type { LockEntry, LockfileData } from "./lockfile.js";
 
-export type SyncActionType = "add" | "extra" | "ok";
+export type SyncActionType = "add" | "extra" | "remove" | "ok";
 
 export interface SyncAction {
   server: string;
@@ -36,15 +36,21 @@ export function reconstructServerEntry(lockEntry: LockEntry): ServerEntry {
   return entry;
 }
 
+export interface DiffOptions {
+  /** When true, converts "extra" actions to "remove" actions */
+  remove?: boolean;
+}
+
 /**
  * computeDiff — lockfile is canonical source of truth.
  * - server in lockfile but not in client -> "add"
- * - server in client but not in lockfile -> "extra"
+ * - server in client but not in lockfile -> "extra" (or "remove" if options.remove)
  * - server in both -> "ok"
  */
 export function computeDiff(
   lockfile: LockfileData,
-  clientConfigs: Map<ClientType, ClientConfig>
+  clientConfigs: Map<ClientType, ClientConfig>,
+  options: DiffOptions = {}
 ): SyncAction[] {
   const actions: SyncAction[] = [];
 
@@ -68,10 +74,11 @@ export function computeDiff(
   }
 
   // Pass 2: client configs -> find servers not in lockfile
+  const extraAction = options.remove ? "remove" : "extra";
   for (const [client, config] of clientConfigs) {
     for (const server of Object.keys(config.servers)) {
       if (!(server in lockfile.servers)) {
-        actions.push({ server, client: client as ClientType, action: "extra" });
+        actions.push({ server, client: client as ClientType, action: extraAction });
       }
     }
   }
@@ -82,15 +89,18 @@ export function computeDiff(
 /**
  * computeDiffFromClient — a specific client config is the source of truth.
  * Servers in source that are missing from other clients -> "add".
- * Servers in target clients not in source -> "extra".
+ * Servers in target clients not in source -> "extra" (or "remove" if options.remove).
  */
 export function computeDiffFromClient(
   sourceClient: ClientType,
-  clientConfigs: Map<ClientType, ClientConfig>
+  clientConfigs: Map<ClientType, ClientConfig>,
+  options: DiffOptions = {}
 ): SyncAction[] {
   const actions: SyncAction[] = [];
   const sourceConfig = clientConfigs.get(sourceClient);
   if (!sourceConfig) return [];
+
+  const extraAction = options.remove ? "remove" : "extra";
 
   for (const [client, config] of clientConfigs) {
     if (client === sourceClient) continue;
@@ -107,7 +117,7 @@ export function computeDiffFromClient(
     // Servers in this client not in source
     for (const server of Object.keys(config.servers)) {
       if (!(server in sourceConfig.servers)) {
-        actions.push({ server, client: client as ClientType, action: "extra" });
+        actions.push({ server, client: client as ClientType, action: extraAction });
       }
     }
   }

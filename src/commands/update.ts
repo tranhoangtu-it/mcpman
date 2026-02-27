@@ -1,11 +1,10 @@
 import { defineCommand } from "citty";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { readLockfile, addEntry, resolveLockfilePath } from "../core/lockfile.js";
+import { readLockfile, resolveLockfilePath } from "../core/lockfile.js";
 import { checkAllVersions, type UpdateInfo } from "../core/version-checker.js";
 import { writeUpdateCache } from "../core/update-notifier.js";
-import { resolveServer } from "../core/server-resolver.js";
-import { computeIntegrity } from "../core/registry.js";
+import { applyServerUpdate } from "../core/server-updater.js";
 import type { ClientHandler } from "../clients/types.js";
 
 async function loadClients(): Promise<ClientHandler[]> {
@@ -142,51 +141,18 @@ export default defineCommand({
     // Apply updates
     let successCount = 0;
     for (const update of outdated) {
-      const lockEntry = servers[update.server];
-      const input =
-        lockEntry.source === "smithery"
-          ? `smithery:${update.server}`
-          : lockEntry.source === "github"
-            ? lockEntry.resolved
-            : update.server;
-
       const s = p.spinner();
       s.start(`Updating ${update.server}...`);
-
-      try {
-        const metadata = await resolveServer(input);
-        const integrity = computeIntegrity(metadata.resolved);
-
-        // Update lockfile entry
-        addEntry(update.server, {
-          ...lockEntry,
-          version: metadata.version,
-          resolved: metadata.resolved,
-          integrity,
-          command: metadata.command,
-          args: metadata.args,
-          installedAt: new Date().toISOString(),
-        });
-
-        // Re-write to each client config
-        const entryClients = clients.filter((c) =>
-          lockEntry.clients.includes(c.type)
-        );
-        for (const client of entryClients) {
-          try {
-            await client.addServer(update.server, {
-              command: metadata.command,
-              args: metadata.args,
-            });
-          } catch {
-            // Non-fatal: log but continue
-          }
-        }
-
-        s.stop(`${pc.green("✓")} ${update.server}: ${update.currentVersion} → ${metadata.version}`);
+      const result = await applyServerUpdate(
+        update.server,
+        servers[update.server],
+        clients
+      );
+      if (result.success) {
+        s.stop(`${pc.green("✓")} ${update.server}: ${result.fromVersion} → ${result.toVersion}`);
         successCount++;
-      } catch (err) {
-        s.stop(`${pc.red("✗")} ${update.server}: ${err instanceof Error ? err.message : String(err)}`);
+      } else {
+        s.stop(`${pc.red("✗")} ${update.server}: ${result.error}`);
       }
     }
 

@@ -1,10 +1,14 @@
 import { defineCommand } from "citty";
+import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { createSpinner } from "nanospinner";
 import { readLockfile } from "../core/lockfile.js";
 import { scanServer, scanAllServers } from "../core/security-scanner.js";
 import type { SecurityReport } from "../core/security-scanner.js";
 import type { RiskLevel } from "../core/trust-scorer.js";
+import { checkVersion } from "../core/version-checker.js";
+import { applyServerUpdate } from "../core/server-updater.js";
+import type { ClientHandler } from "../clients/types.js";
 
 // Color-code risk level text
 function colorRisk(level: RiskLevel | "UNKNOWN", score: number | null): string {
@@ -97,7 +101,12 @@ export default defineCommand({
     },
     fix: {
       type: "boolean",
-      description: "Show available fix versions for vulnerable packages",
+      description: "Apply updates to fix vulnerable packages",
+      default: false,
+    },
+    yes: {
+      type: "boolean",
+      description: "Skip confirmation prompt (use with --fix)",
       default: false,
     },
   },
@@ -168,16 +177,137 @@ export default defineCommand({
     }
     console.log(`\n  Summary: ${parts.join(" | ")}\n`);
 
-    // Fix suggestions
+    // --fix: auto-update vulnerable npm servers
     if (args.fix) {
-      const withVulns = reports.filter((r) => r.vulnerabilities.length > 0);
-      if (withVulns.length > 0) {
-        console.log(pc.bold("  Fix suggestions:"));
-        for (const r of withVulns) {
-          console.log(`    ${pc.cyan("→")} Run ${pc.cyan(`mcpman install ${r.server}@latest`)} to update`);
-        }
-        console.log();
-      }
+      await runAuditFix(reports, lockfile.servers, args.yes);
     }
   },
 });
+
+// Load installed clients lazily (same pattern as update.ts)
+async function loadClients(): Promise<ClientHandler[]> {
+  try {
+    const mod = await import("../clients/client-detector.js");
+    return mod.getInstalledClients();
+  } catch {
+    return [];
+  }
+}
+
+// Handle the --fix flow: check versions, confirm, apply, re-scan
+async function runAuditFix(
+  reports: SecurityReport[],
+  servers: Record<string, import("../core/lockfile.js").LockEntry>,
+  skipConfirm: boolean
+): Promise<void> {
+  // Only npm sources can be auto-updated
+  const npmWithVulns = reports.filter(
+    (r) => r.vulnerabilities.length > 0 && r.source === "npm"
+  );
+  const nonNpmWithVulns = reports.filter(
+    (r) => r.vulnerabilities.length > 0 && r.source !== "npm"
+  );
+
+  // Notify about non-npm servers that need manual attention
+  if (nonNpmWithVulns.length > 0) {
+    console.log(pc.yellow("  Non-npm servers require manual update:"));
+    for (const r of nonNpmWithVulns) {
+      console.log(`    ${pc.dim("→")} ${r.server} (${r.source})`);
+    }
+    console.log();
+  }
+
+  if (npmWithVulns.length === 0) {
+    console.log(pc.green("  No fixable vulnerabilities found.\n"));
+    return;
+  }
+
+  // Check which npm servers actually have an update available
+  const versionSpinner = createSpinner("Checking for available updates...").start();
+  const versionChecks = await Promise.all(
+    npmWithVulns.map((r) => checkVersion(r.server, servers[r.server]))
+  );
+  versionSpinner.success({ text: "Version check complete" });
+
+  const updatable = versionChecks.filter((u) => u.hasUpdate);
+
+  if (updatable.length === 0) {
+    console.log(pc.yellow(
+      "  Vulnerable servers have no newer versions available yet.\n" +
+      "  Allow time for registry to publish fixes.\n"
+    ));
+    return;
+  }
+
+  // Show what will be updated
+  console.log(pc.bold(`\n  ${updatable.length} server(s) can be updated to fix vulnerabilities:\n`));
+  for (const u of updatable) {
+    console.log(`    ${pc.cyan("→")} ${u.server}  ${pc.dim(u.currentVersion)} → ${pc.green(u.latestVersion)}`);
+  }
+  console.log();
+
+  // Confirm unless --yes
+  if (!skipConfirm) {
+    const confirmed = await p.confirm({
+      message: `Update ${updatable.length} vulnerable server(s)?`,
+      initialValue: true,
+    });
+    if (p.isCancel(confirmed) || !confirmed) {
+      p.outro("Cancelled.");
+      return;
+    }
+  }
+
+  const clients = await loadClients();
+
+  // Apply updates and collect results
+  let successCount = 0;
+  const results: Array<{ server: string; from: string; to: string; ok: boolean; error?: string }> = [];
+
+  for (const u of updatable) {
+    const s = createSpinner(`Updating ${u.server}...`).start();
+    const result = await applyServerUpdate(u.server, servers[u.server], clients);
+    if (result.success) {
+      s.success({ text: `${pc.green("✓")} ${u.server}: ${result.fromVersion} → ${result.toVersion}` });
+      successCount++;
+    } else {
+      s.error({ text: `${pc.red("✗")} ${u.server}: ${result.error}` });
+    }
+    results.push({
+      server: u.server,
+      from: result.fromVersion,
+      to: result.toVersion,
+      ok: result.success,
+      error: result.error,
+    });
+  }
+
+  console.log();
+
+  // Re-scan updated servers to show improvement
+  if (successCount > 0) {
+    const updatedNames = results.filter((r) => r.ok).map((r) => r.server);
+    const freshLockfile = readLockfile();
+    const rescanSpinner = createSpinner("Re-scanning updated servers...").start();
+
+    const afterReports = await Promise.all(
+      updatedNames.map((name) => scanServer(name, freshLockfile.servers[name]))
+    );
+    rescanSpinner.success({ text: "Re-scan complete" });
+
+    // Print before/after comparison
+    console.log(pc.bold("\n  Before / After:\n"));
+    for (const after of afterReports) {
+      const before = reports.find((r) => r.server === after.server);
+      const beforeVulns = before?.vulnerabilities.length ?? 0;
+      const afterVulns = after.vulnerabilities.length;
+      const improved = afterVulns < beforeVulns ? pc.green("improved") : pc.yellow("unchanged");
+      console.log(
+        `    ${pc.bold(after.server)}  vulns: ${beforeVulns} → ${afterVulns}  [${improved}]`
+      );
+    }
+    console.log();
+  }
+
+  console.log(`\n  ${successCount} of ${updatable.length} server(s) updated.\n`);
+}

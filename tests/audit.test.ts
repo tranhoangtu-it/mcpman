@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computeTrustScore } from "../src/core/trust-scorer.js";
-import type { PackageMetadata, VulnInfo } from "../src/core/security-scanner.js";
+import type { PackageMetadata, VulnInfo, SecurityReport } from "../src/core/security-scanner.js";
 
 // --- Helpers ---
 
@@ -235,5 +235,190 @@ describe("scanServer()", () => {
     });
     expect(report.riskLevel).toBe("UNKNOWN");
     expect(report.source).toBe("github");
+  });
+});
+
+// ─── audit --fix flow (unit tests via runAuditFix internals) ─────────────────
+
+// Helper to build a minimal SecurityReport
+function makeReport(
+  server: string,
+  source: SecurityReport["source"],
+  vulns: VulnInfo[] = []
+): SecurityReport {
+  return {
+    server,
+    source,
+    score: vulns.length === 0 ? 90 : 30,
+    riskLevel: vulns.length === 0 ? "LOW" : "HIGH",
+    vulnerabilities: vulns,
+    metadata: null,
+  };
+}
+
+describe("audit --fix: applyServerUpdate integration", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mockFetch.mockReset();
+  });
+
+  it("applyServerUpdate returns success result when resolveServer succeeds", async () => {
+    // Mock fetch: resolveServer calls npm registry
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        version: "2.0.0",
+        name: "vuln-server",
+        description: "test",
+        command: "npx",
+        args: ["-y", "vuln-server@2.0.0"],
+      }),
+    });
+
+    const { applyServerUpdate } = await import("../src/core/server-updater.js");
+
+    const lockEntry = {
+      version: "1.0.0",
+      source: "npm" as const,
+      resolved: "https://registry.npmjs.org/vuln-server/-/vuln-server-1.0.0.tgz",
+      integrity: "sha512-old",
+      runtime: "node" as const,
+      command: "npx",
+      args: ["-y", "vuln-server@1.0.0"],
+      envVars: [],
+      installedAt: new Date().toISOString(),
+      clients: ["claude-desktop" as const],
+    };
+
+    const mockClient = {
+      type: "claude-desktop" as const,
+      displayName: "Claude Desktop",
+      isInstalled: vi.fn().mockResolvedValue(true),
+      getConfigPath: vi.fn().mockReturnValue("/tmp/test-config.json"),
+      readConfig: vi.fn().mockResolvedValue({ servers: {} }),
+      writeConfig: vi.fn().mockResolvedValue(undefined),
+      addServer: vi.fn().mockResolvedValue(undefined),
+      removeServer: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const result = await applyServerUpdate("vuln-server", lockEntry, [mockClient]);
+
+    expect(result.success).toBe(true);
+    expect(result.fromVersion).toBe("1.0.0");
+    expect(result.toVersion).toBe("2.0.0");
+    expect(result.server).toBe("vuln-server");
+    expect(mockClient.addServer).toHaveBeenCalledWith("vuln-server", expect.objectContaining({
+      command: "npx",
+    }));
+  });
+
+  it("applyServerUpdate returns error result when resolveServer fails", async () => {
+    // Make fetch reject (simulates registry down)
+    mockFetch.mockRejectedValueOnce(new Error("Registry unreachable"));
+
+    const { applyServerUpdate } = await import("../src/core/server-updater.js");
+
+    const lockEntry = {
+      version: "1.0.0",
+      source: "npm" as const,
+      resolved: "https://registry.npmjs.org/broken/-/broken-1.0.0.tgz",
+      integrity: "sha512-old",
+      runtime: "node" as const,
+      command: "npx",
+      args: ["-y", "broken@1.0.0"],
+      envVars: [],
+      installedAt: new Date().toISOString(),
+      clients: ["cursor" as const],
+    };
+
+    const result = await applyServerUpdate("broken", lockEntry, []);
+
+    expect(result.success).toBe(false);
+    expect(result.fromVersion).toBe("1.0.0");
+    expect(result.toVersion).toBe("1.0.0"); // unchanged on failure
+    expect(result.error).toBeDefined();
+    expect(result.error).toContain("unreachable");
+  });
+
+  it("applyServerUpdate skips clients that do not match lockEntry.clients", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        version: "1.5.0",
+        name: "my-pkg",
+        description: "",
+        command: "npx",
+        args: ["-y", "my-pkg@1.5.0"],
+      }),
+    });
+
+    const { applyServerUpdate } = await import("../src/core/server-updater.js");
+
+    const lockEntry = {
+      version: "1.0.0",
+      source: "npm" as const,
+      resolved: "https://registry.npmjs.org/my-pkg/-/my-pkg-1.0.0.tgz",
+      integrity: "sha512-old",
+      runtime: "node" as const,
+      command: "npx",
+      args: ["-y", "my-pkg@1.0.0"],
+      envVars: [],
+      installedAt: new Date().toISOString(),
+      clients: ["claude-desktop" as const], // only claude-desktop
+    };
+
+    const cursorClient = {
+      type: "cursor" as const,
+      displayName: "Cursor",
+      isInstalled: vi.fn().mockResolvedValue(true),
+      getConfigPath: vi.fn().mockReturnValue("/tmp/cursor-config.json"),
+      readConfig: vi.fn().mockResolvedValue({ servers: {} }),
+      writeConfig: vi.fn().mockResolvedValue(undefined),
+      addServer: vi.fn().mockResolvedValue(undefined),
+      removeServer: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await applyServerUpdate("my-pkg", lockEntry, [cursorClient]);
+
+    // cursor client should NOT be called since lockEntry.clients = ["claude-desktop"]
+    expect(cursorClient.addServer).not.toHaveBeenCalled();
+  });
+});
+
+describe("audit --fix: no vulnerable servers", () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
+
+  it("makeReport with no vulns yields empty vulnerabilities list", () => {
+    const report = makeReport("safe-server", "npm", []);
+    expect(report.vulnerabilities).toHaveLength(0);
+    expect(report.riskLevel).toBe("LOW");
+  });
+
+  it("makeReport with vulns yields non-empty vulnerabilities list", () => {
+    const report = makeReport("vuln-server", "npm", [makeVuln("critical")]);
+    expect(report.vulnerabilities).toHaveLength(1);
+    expect(report.riskLevel).toBe("HIGH");
+  });
+
+  it("non-npm source report is filtered from auto-fix candidates", () => {
+    const smitheryReport = makeReport("smithery-server", "smithery", [makeVuln("high")]);
+    const githubReport = makeReport("owner/repo", "github", [makeVuln("moderate")]);
+    const npmReport = makeReport("npm-server", "npm", [makeVuln("critical")]);
+
+    const allReports = [smitheryReport, githubReport, npmReport];
+
+    // Replicate the filter logic from runAuditFix
+    const npmWithVulns = allReports.filter(
+      (r) => r.vulnerabilities.length > 0 && r.source === "npm"
+    );
+    const nonNpmWithVulns = allReports.filter(
+      (r) => r.vulnerabilities.length > 0 && r.source !== "npm"
+    );
+
+    expect(npmWithVulns).toHaveLength(1);
+    expect(npmWithVulns[0].server).toBe("npm-server");
+    expect(nonNpmWithVulns).toHaveLength(2);
   });
 });
