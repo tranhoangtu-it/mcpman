@@ -6,6 +6,16 @@ export function getHomedir(): string {
   return os.homedir();
 }
 
+/** Returns mcpman data dir: ~/.mcpman */
+export function getMcpmanDir(): string {
+  return path.join(os.homedir(), ".mcpman");
+}
+
+/** Returns mcpman config file path: ~/.mcpman/config.json */
+export function getConfigPath(): string {
+  return path.join(getMcpmanDir(), "config.json");
+}
+
 /** Returns platform app data dir: ~/Library/Application Support (mac), ~/.config (linux), %APPDATA% (win) */
 export function getAppDataDir(): string {
   const home = getHomedir();
