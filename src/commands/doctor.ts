@@ -50,7 +50,7 @@ export default defineCommand({
     }
 
     // Summary
-    console.log(pc.dim("  " + "─".repeat(50)));
+    console.log(pc.dim(`  ${"─".repeat(50)}`));
     const parts: string[] = [];
     if (passed > 0) parts.push(pc.green(`${passed} healthy`));
     if (failed > 0) parts.push(pc.red(`${failed} unhealthy`));

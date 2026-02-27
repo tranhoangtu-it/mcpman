@@ -30,19 +30,19 @@ export async function searchNpm(query: string, limit = 20): Promise<NpmSearchRes
     if (!res.ok) return [];
 
     const data = (await res.json()) as Record<string, unknown>;
-    const objects = Array.isArray(data["objects"]) ? data["objects"] : [];
+    const objects = Array.isArray(data.objects) ? data.objects : [];
 
     return objects
       .map((obj: Record<string, unknown>) => {
-        const pkg = (obj["package"] ?? {}) as Record<string, unknown>;
-        const dl = obj["downloads"] as Record<string, unknown> | undefined;
+        const pkg = (obj.package ?? {}) as Record<string, unknown>;
+        const dl = obj.downloads as Record<string, unknown> | undefined;
         return {
-          name: typeof pkg["name"] === "string" ? pkg["name"] : "",
-          description: typeof pkg["description"] === "string" ? pkg["description"] : "",
-          version: typeof pkg["version"] === "string" ? pkg["version"] : "",
-          date: typeof pkg["date"] === "string" ? pkg["date"] : "",
-          downloads: typeof dl?.["weekly"] === "number" ? dl["weekly"] : 0,
-          keywords: Array.isArray(pkg["keywords"]) ? (pkg["keywords"] as string[]) : [],
+          name: typeof pkg.name === "string" ? pkg.name : "",
+          description: typeof pkg.description === "string" ? pkg.description : "",
+          version: typeof pkg.version === "string" ? pkg.version : "",
+          date: typeof pkg.date === "string" ? pkg.date : "",
+          downloads: typeof dl?.weekly === "number" ? dl.weekly : 0,
+          keywords: Array.isArray(pkg.keywords) ? (pkg.keywords as string[]) : [],
         };
       })
       .filter((r) => r.name !== "");
@@ -61,14 +61,14 @@ export async function searchSmithery(query: string, limit = 20): Promise<Smither
     if (!res.ok) return [];
 
     const data = (await res.json()) as Record<string, unknown>;
-    const servers = Array.isArray(data["servers"]) ? data["servers"] : [];
+    const servers = Array.isArray(data.servers) ? data.servers : [];
 
     return servers
       .map((s: Record<string, unknown>) => ({
-        name: typeof s["name"] === "string" ? s["name"] : "",
-        description: typeof s["description"] === "string" ? s["description"] : "",
-        version: typeof s["version"] === "string" ? s["version"] : "latest",
-        runtime: typeof s["runtime"] === "string" ? s["runtime"] : "node",
+        name: typeof s.name === "string" ? s.name : "",
+        description: typeof s.description === "string" ? s.description : "",
+        version: typeof s.version === "string" ? s.version : "latest",
+        runtime: typeof s.runtime === "string" ? s.runtime : "node",
       }))
       .filter((r) => r.name !== "");
   } catch {

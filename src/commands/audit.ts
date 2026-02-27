@@ -66,11 +66,7 @@ function printReport(report: SecurityReport): void {
       report.metadata;
     const dlStr = weeklyDownloads.toLocaleString();
     console.log(
-      `    ${pc.dim("Downloads:")} ${dlStr}/week  ${pc.dim("|")}  ` +
-        `${pc.dim("Age:")} ${packageAge}d  ${pc.dim("|")}  ` +
-        `${pc.dim("Last publish:")} ${daysAgo(lastPublish)}  ${pc.dim("|")}  ` +
-        `${pc.dim("Maintainers:")} ${maintainerCount}` +
-        (deprecated ? pc.red("  [DEPRECATED]") : ""),
+      `    ${pc.dim("Downloads:")} ${dlStr}/week  ${pc.dim("|")}  ${pc.dim("Age:")} ${packageAge}d  ${pc.dim("|")}  ${pc.dim("Last publish:")} ${daysAgo(lastPublish)}  ${pc.dim("|")}  ${pc.dim("Maintainers:")} ${maintainerCount}${deprecated ? pc.red("  [DEPRECATED]") : ""}`,
     );
   }
 
@@ -158,13 +154,13 @@ export default defineCommand({
     }
 
     console.log(pc.bold("\n  mcpman audit\n"));
-    console.log(pc.dim("  " + "─".repeat(60)));
+    console.log(pc.dim(`  ${"─".repeat(60)}`));
 
     for (const report of reports) {
       printReport(report);
     }
 
-    console.log(pc.dim("  " + "─".repeat(60)));
+    console.log(pc.dim(`  ${"─".repeat(60)}`));
 
     // Summary
     const withIssues = reports.filter((r) => r.riskLevel !== "LOW" && r.riskLevel !== "UNKNOWN");

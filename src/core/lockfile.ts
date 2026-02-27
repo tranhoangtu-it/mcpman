@@ -67,7 +67,7 @@ function serialize(data: LockfileData): string {
       Object.entries(data.servers).sort(([a], [b]) => a.localeCompare(b)),
     ),
   };
-  return JSON.stringify(sorted, null, 2) + "\n";
+  return `${JSON.stringify(sorted, null, 2)}\n`;
 }
 
 // Atomic write via temp file + rename

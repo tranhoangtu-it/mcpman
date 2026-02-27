@@ -6,7 +6,7 @@ import type { NpmSearchResult, SmitherySearchResult } from "../core/registry-sea
 
 // Truncate string to max length, appending ellipsis if needed
 function truncate(s: string, max: number): string {
-  return s.length > max ? s.slice(0, max - 1) + "…" : s;
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
 }
 
 // Pad string to fixed width (left-aligned)
@@ -131,7 +131,7 @@ export default defineCommand({
         ),
       );
       printNpmResults(results, query);
-      console.log(pc.dim(`\n  Install with: mcpman install <name>\n`));
+      console.log(pc.dim("\n  Install with: mcpman install <name>\n"));
 
       if (args.all) {
         await printPluginResults(query, limit);
@@ -154,7 +154,7 @@ export default defineCommand({
       ),
     );
     printSmitheryResults(results, query);
-    console.log(pc.dim(`\n  Install with: mcpman install <name>\n`));
+    console.log(pc.dim("\n  Install with: mcpman install <name>\n"));
 
     // Plugin search (append if --all flag)
     if (args.all) {

@@ -87,23 +87,22 @@ export async function fetchNpmMetadata(packageName: string): Promise<PackageMeta
     if (!regRes.ok) return null;
     const reg = (await regRes.json()) as Record<string, unknown>;
 
-    const time = (reg["time"] ?? {}) as Record<string, string>;
-    const created = time["created"] ? new Date(time["created"]) : null;
-    const modified = time["modified"] ? new Date(time["modified"]) : null;
+    const time = (reg.time ?? {}) as Record<string, string>;
+    const created = time.created ? new Date(time.created) : null;
+    const modified = time.modified ? new Date(time.modified) : null;
     const packageAge = created ? Math.floor((Date.now() - created.getTime()) / 86_400_000) : 0;
 
-    const maintainers = Array.isArray(reg["maintainers"]) ? reg["maintainers"] : [];
-    const latestVersion =
-      (reg["dist-tags"] as Record<string, string> | undefined)?.["latest"] ?? "";
-    const versionData = (reg["versions"] as Record<string, Record<string, unknown>> | undefined)?.[
+    const maintainers = Array.isArray(reg.maintainers) ? reg.maintainers : [];
+    const latestVersion = (reg["dist-tags"] as Record<string, string> | undefined)?.latest ?? "";
+    const versionData = (reg.versions as Record<string, Record<string, unknown>> | undefined)?.[
       latestVersion
     ];
-    const deprecated = typeof versionData?.["deprecated"] === "string";
+    const deprecated = typeof versionData?.deprecated === "string";
 
     let weeklyDownloads = 0;
     if (dlRes.ok) {
       const dl = (await dlRes.json()) as Record<string, unknown>;
-      weeklyDownloads = typeof dl["downloads"] === "number" ? dl["downloads"] : 0;
+      weeklyDownloads = typeof dl.downloads === "number" ? dl.downloads : 0;
     }
 
     return {
@@ -132,26 +131,24 @@ export async function fetchVulnerabilities(
     });
     if (!res.ok) return [];
     const data = (await res.json()) as Record<string, unknown>;
-    const vulns = Array.isArray(data["vulns"]) ? data["vulns"] : [];
+    const vulns = Array.isArray(data.vulns) ? data.vulns : [];
     return vulns.map((v: Record<string, unknown>) => {
-      const severity = (v["database_specific"] as Record<string, unknown> | undefined)?.[
-        "severity"
-      ];
+      const severity = (v.database_specific as Record<string, unknown> | undefined)?.severity;
       const sev = (
         typeof severity === "string" ? severity.toLowerCase() : "moderate"
       ) as VulnInfo["severity"];
-      const refs = Array.isArray(v["references"]) ? v["references"] : [];
+      const refs = Array.isArray(v.references) ? v.references : [];
       return {
         severity: ["low", "moderate", "high", "critical"].includes(sev) ? sev : "moderate",
         title:
-          typeof v["summary"] === "string"
-            ? v["summary"]
-            : typeof v["id"] === "string"
-              ? v["id"]
+          typeof v.summary === "string"
+            ? v.summary
+            : typeof v.id === "string"
+              ? v.id
               : "Unknown vulnerability",
         url:
-          typeof (refs[0] as Record<string, unknown> | undefined)?.["url"] === "string"
-            ? ((refs[0] as Record<string, unknown>)["url"] as string)
+          typeof (refs[0] as Record<string, unknown> | undefined)?.url === "string"
+            ? ((refs[0] as Record<string, unknown>).url as string)
             : undefined,
       } as VulnInfo;
     });

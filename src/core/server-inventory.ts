@@ -20,7 +20,7 @@ export async function getInstalledServers(clientFilter?: string): Promise<Instal
   const serverMap = new Map<string, InstalledServer>();
 
   for (const client of filtered) {
-    let config;
+    let config: Record<string, ServerEntry> | undefined;
     try {
       config = await client.readConfig();
     } catch {

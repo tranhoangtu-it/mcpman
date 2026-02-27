@@ -127,6 +127,6 @@ export async function checkMcpHandshake(
       }
     });
 
-    child.stdin?.write(MCP_INIT_REQUEST + "\n");
+    child.stdin?.write(`${MCP_INIT_REQUEST}\n`);
   });
 }

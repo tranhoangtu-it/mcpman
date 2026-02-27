@@ -75,7 +75,7 @@ export default defineCommand({
       const icon = STATUS_ICON[s.status];
       const clientsStr = formatClients(s.clients);
       const cmdStr = truncate(
-        `${s.config.command}${s.config.args ? " " + s.config.args.join(" ") : ""}`,
+        `${s.config.command}${s.config.args ? ` ${s.config.args.join(" ")}` : ""}`,
         20,
       );
       console.log(
@@ -97,7 +97,7 @@ function pad(s: string, width: number): string {
 }
 
 function truncate(s: string, max: number): string {
-  return s.length > max ? s.slice(0, max - 1) + "…" : s;
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
 }
 
 const CLIENT_DISPLAY: Record<string, string> = {

@@ -28,7 +28,7 @@ function printInfo(info: PackageInfo): void {
   const installedBadge = info.isInstalled ? pc.green(" [installed]") : pc.dim(" [not installed]");
   console.log();
   console.log(pc.bold(`  ${info.name}@${info.version}`) + installedBadge);
-  console.log(pc.dim("  " + "─".repeat(60)));
+  console.log(pc.dim(`  ${"─".repeat(60)}`));
 
   // Basic fields
   console.log(`  ${pc.dim("Source:")}   ${info.source}`);
@@ -86,7 +86,7 @@ function printInfo(info: PackageInfo): void {
   }
 
   console.log();
-  console.log(pc.dim("  " + "─".repeat(60)));
+  console.log(pc.dim(`  ${"─".repeat(60)}`));
   console.log();
 }
 
@@ -110,7 +110,7 @@ export default defineCommand({
   async run({ args }) {
     const spinner = createSpinner(`Fetching info for ${args.server}...`).start();
 
-    let info;
+    let info: Awaited<ReturnType<typeof getPackageInfo>> | undefined;
     try {
       info = await getPackageInfo(args.server);
     } catch (err) {

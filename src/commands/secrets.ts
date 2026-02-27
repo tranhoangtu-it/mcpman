@@ -47,7 +47,7 @@ const setCommand = defineCommand({
   async run({ args }) {
     const parsed = parseKeyValue(args.keyvalue);
     if (!parsed) {
-      console.error(pc.red("✗") + " Invalid format. Expected KEY=VALUE");
+      console.error(`${pc.red("✗")} Invalid format. Expected KEY=VALUE`);
       process.exit(1);
     }
 
@@ -68,7 +68,7 @@ const setCommand = defineCommand({
       setSecret(args.server, parsed.key, parsed.value, password);
       spin.stop(`${pc.green("✓")} Stored ${pc.bold(parsed.key)} for ${pc.cyan(args.server)}`);
     } catch (err) {
-      spin.stop(pc.red("✗") + " Failed to store secret");
+      spin.stop(`${pc.red("✗")} Failed to store secret`);
       console.error(pc.dim(String(err)));
       process.exit(1);
     }
@@ -148,7 +148,7 @@ const removeCommand = defineCommand({
       removeSecret(args.server, args.key);
       console.log(`${pc.green("✓")} Removed ${pc.bold(args.key)} from ${pc.cyan(args.server)}`);
     } catch (err) {
-      console.error(pc.red("✗") + " Failed to remove secret");
+      console.error(`${pc.red("✗")} Failed to remove secret`);
       console.error(pc.dim(String(err)));
       process.exit(1);
     }
