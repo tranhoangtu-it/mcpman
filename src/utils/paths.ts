@@ -21,6 +21,11 @@ export function getPluginDir(): string {
   return path.join(getMcpmanDir(), "plugins");
 }
 
+/** Returns mcpman profiles dir: ~/.mcpman/profiles */
+export function getProfilesDir(): string {
+  return path.join(getMcpmanDir(), "profiles");
+}
+
 /** Returns platform app data dir: ~/Library/Application Support (mac), ~/.config (linux), %APPDATA% (win) */
 export function getAppDataDir(): string {
   const home = getHomedir();

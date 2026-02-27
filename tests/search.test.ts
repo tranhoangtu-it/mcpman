@@ -34,17 +34,20 @@ function makeNpmObject(overrides: {
 }
 
 // Build a minimal Smithery API response server object
+// API shape: { qualifiedName, description, useCount, verified, homepage }
 function makeSmitheryServer(overrides: {
-  name?: string;
+  qualifiedName?: string;
   description?: string;
-  version?: string;
-  runtime?: string;
+  useCount?: number;
+  verified?: boolean;
+  homepage?: string;
 } = {}) {
   return {
-    name: overrides.name ?? "smithery-mcp-server",
+    qualifiedName: overrides.qualifiedName ?? "smithery-mcp-server",
     description: overrides.description ?? "A Smithery MCP server",
-    version: overrides.version ?? "0.1.0",
-    runtime: overrides.runtime ?? "node",
+    useCount: overrides.useCount ?? 42,
+    verified: overrides.verified ?? false,
+    homepage: overrides.homepage ?? "https://smithery.ai/server/smithery-mcp-server",
   };
 }
 
@@ -186,14 +189,14 @@ describe("searchSmithery()", () => {
     const { searchSmithery } = await import("../src/core/registry-search.js");
 
     mockFetch.mockResolvedValueOnce(makeResponse({
-      servers: [makeSmitheryServer({ name: "brave-mcp", version: "1.0.0" })],
+      servers: [makeSmitheryServer({ qualifiedName: "brave-mcp", useCount: 100, verified: true })],
     }));
 
     const results = await searchSmithery("brave");
     expect(results).toHaveLength(1);
     expect(results[0].name).toBe("brave-mcp");
-    expect(results[0].version).toBe("1.0.0");
-    expect(results[0].runtime).toBe("node");
+    expect(results[0].useCount).toBe(100);
+    expect(results[0].verified).toBe(true);
   });
 
   it("returns empty array on API error (500)", async () => {
@@ -223,14 +226,29 @@ describe("searchSmithery()", () => {
     expect(results).toHaveLength(0);
   });
 
-  it("defaults version to 'latest' when missing", async () => {
+  it("defaults useCount to 0 and verified to false when fields missing", async () => {
     const { searchSmithery } = await import("../src/core/registry-search.js");
 
     mockFetch.mockResolvedValueOnce(makeResponse({
-      servers: [{ name: "no-version-server", description: "test", runtime: "node" }],
+      servers: [{ qualifiedName: "minimal-server", description: "test" }],
     }));
 
     const results = await searchSmithery("test");
-    expect(results[0].version).toBe("latest");
+    expect(results[0].name).toBe("minimal-server");
+    expect(results[0].useCount).toBe(0);
+    expect(results[0].verified).toBe(false);
+    expect(results[0].homepage).toBe("");
+  });
+
+  it("uses pageSize param in Smithery API URL", async () => {
+    const { searchSmithery } = await import("../src/core/registry-search.js");
+
+    mockFetch.mockResolvedValueOnce(makeResponse({ servers: [] }));
+
+    await searchSmithery("test", 10);
+
+    const calledUrl = mockFetch.mock.calls[0][0] as string;
+    expect(calledUrl).toContain("registry.smithery.ai");
+    expect(calledUrl).toContain("pageSize=10");
   });
 });

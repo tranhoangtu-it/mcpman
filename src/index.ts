@@ -8,13 +8,17 @@ import info from "./commands/info.js";
 import init from "./commands/init.js";
 import install from "./commands/install.js";
 import list from "./commands/list.js";
+import logs from "./commands/logs.js";
 import plugin from "./commands/plugin.js";
+import profiles from "./commands/profiles.js";
 import remove from "./commands/remove.js";
 import run from "./commands/run.js";
 import search from "./commands/search.js";
 import secrets from "./commands/secrets.js";
 import sync from "./commands/sync.js";
+import testCmd from "./commands/test-command.js";
 import update from "./commands/update.js";
+import upgrade from "./commands/upgrade.js";
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from "./utils/constants.js";
 
 process.on("SIGINT", () => {
@@ -38,10 +42,14 @@ const main = defineCommand({
     sync,
     audit,
     update,
+    upgrade,
     config,
     search,
     info,
     run,
+    logs,
+    test: testCmd,
+    profiles,
     plugin,
     export: exportCmd,
     import: importCmd,

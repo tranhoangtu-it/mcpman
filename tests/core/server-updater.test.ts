@@ -176,17 +176,22 @@ describe("applyServerUpdate()", () => {
   });
 
   it("smithery source: resolves with smithery: prefix", async () => {
+    // Smithery API returns list-based response with qualifiedName
     mockFetch.mockResolvedValueOnce(makeResponse({
-      version: "1.2.0",
-      command: "npx",
-      args: ["-y", "smithery-server@1.2.0"],
-      resolved: "smithery:smithery-server@1.2.0",
+      servers: [
+        {
+          qualifiedName: "smithery-server",
+          description: "A Smithery server",
+          useCount: 5,
+          verified: true,
+        },
+      ],
     }));
 
     const { applyServerUpdate } = await import("../../src/core/server-updater.js");
     const entry = makeLockEntry({
       source: "smithery",
-      resolved: "smithery:smithery-server@1.0.0",
+      resolved: "smithery:smithery-server",
     });
 
     const result = await applyServerUpdate("smithery-server", entry, []);

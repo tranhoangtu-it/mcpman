@@ -41,6 +41,10 @@ mcpman install @modelcontextprotocol/server-filesystem
 - **Auto-update** — get notified when server updates are available
 - **Plugin system** — extend mcpman with npm-based plugins for custom registries (e.g. Ollama, HuggingFace)
 - **Export/Import** — portable JSON bundles for full config migration across machines
+- **Server testing** — validate MCP servers respond to JSON-RPC initialize + tools/list
+- **Log streaming** — stream stdout/stderr from servers in real time
+- **Profiles** — save/restore named server configurations for quick switching
+- **Self-upgrade** — update mcpman itself with a single command
 - **Interactive prompts** — guided installation with env var configuration
 - **No extra daemon** — pure CLI, works anywhere Node ≥ 20 runs
 
@@ -202,6 +206,50 @@ mcpman run my-server
 mcpman run my-server --env API_KEY=sk-...
 ```
 
+### `upgrade`
+
+Upgrade mcpman itself to the latest version from npm.
+
+```sh
+mcpman upgrade           # check and install latest
+mcpman upgrade --check   # only check, don't install
+```
+
+### `test [server]`
+
+Validate MCP server connectivity by sending JSON-RPC `initialize` + `tools/list`.
+
+```sh
+mcpman test my-server    # test a specific server
+mcpman test --all        # test all installed servers
+```
+
+Reports pass/fail, response time, and discovered tools for each server.
+
+### `logs <server>`
+
+Stream stdout/stderr from an MCP server process in real time.
+
+```sh
+mcpman logs my-server    # stream logs (Ctrl+C to stop)
+```
+
+Vault secrets are auto-injected into the server environment.
+
+### `profiles <create|switch|list|delete>`
+
+Manage named server configuration profiles for quick switching.
+
+```sh
+mcpman profiles create dev           # snapshot current servers as "dev"
+mcpman profiles create prod -d "Production config"
+mcpman profiles list                 # show all profiles
+mcpman profiles switch dev           # apply "dev" profile to lockfile
+mcpman profiles delete old           # remove a profile
+```
+
+After switching, run `mcpman sync` to apply the profile to all clients.
+
 ### `plugin <add|remove|list>`
 
 Manage mcpman plugins for custom registries.
@@ -252,6 +300,10 @@ mcpman import backup.json --dry-run   # preview without applying
 | Registry sources | npm + Smithery + GitHub | Smithery only | npm only |
 | Plugin system | npm-based custom registries | None | None |
 | Export/Import | Full config portability | None | None |
+| Server testing | JSON-RPC validation | None | None |
+| Log streaming | Real-time stdout/stderr | None | None |
+| Profiles | Named config switching | None | None |
+| Self-upgrade | Built-in CLI updater | None | None |
 | Interactive setup | Yes | Partial | No |
 | Project-scoped | Yes (`init`) | No | No |
 

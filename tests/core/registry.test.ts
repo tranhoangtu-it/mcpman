@@ -41,28 +41,33 @@ describe("registry", () => {
 
   describe("resolveFromSmithery()", () => {
     it("resolves server from Smithery registry", async () => {
+      // Smithery API returns a list of servers; qualifiedName is used as name
       mockFetch.mockResolvedValueOnce(
         makeResponse({
-          version: "1.2.3",
-          description: "A test server",
-          command: "npx",
-          args: ["-y", "test-server@1.2.3"],
-          envVars: [],
-          resolved: "smithery:test-server@1.2.3",
+          servers: [
+            {
+              qualifiedName: "test-server",
+              displayName: "Test Server",
+              description: "A test server",
+              useCount: 10,
+              verified: true,
+            },
+          ],
         })
       );
 
       const meta = await resolveFromSmithery("test-server");
       expect(meta.name).toBe("test-server");
-      expect(meta.version).toBe("1.2.3");
+      expect(meta.version).toBe("latest");
       expect(meta.runtime).toBe("node");
       expect(meta.command).toBe("npx");
+      expect(meta.resolved).toBe("smithery:test-server");
     });
 
     it("throws on 404", async () => {
       mockFetch.mockResolvedValueOnce(makeResponse({}, 404));
       await expect(resolveFromSmithery("unknown-server")).rejects.toThrow(
-        "not found"
+        "Smithery API error"
       );
     });
 
@@ -74,11 +79,16 @@ describe("registry", () => {
     });
 
     it("uses defaults when fields are missing", async () => {
-      mockFetch.mockResolvedValueOnce(makeResponse({}));
+      // Returns a server entry with minimal fields; qualifiedName used as name
+      mockFetch.mockResolvedValueOnce(
+        makeResponse({
+          servers: [{ qualifiedName: "minimal-server" }],
+        })
+      );
       const meta = await resolveFromSmithery("minimal-server");
       expect(meta.version).toBe("latest");
       expect(meta.command).toBe("npx");
-      expect(meta.args).toContain("minimal-server@latest");
+      expect(meta.args).toContain("minimal-server");
     });
   });
 

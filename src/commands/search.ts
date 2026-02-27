@@ -60,20 +60,21 @@ function printNpmResults(results: NpmSearchResult[], query: string): void {
 // Print Smithery results as aligned table
 function printSmitheryResults(results: SmitherySearchResult[], query: string): void {
   const nameWidth = Math.max(4, ...results.map((r) => r.name.length), 20);
-  const verWidth = Math.max(7, ...results.map((r) => r.version.length));
+  const usesWidth = 8;
   const descMax = 50;
 
-  const header = `  ${pad("NAME", nameWidth)}  ${pad("VERSION", verWidth)}  DESCRIPTION`;
+  const header = `  ${pad("NAME", nameWidth)}  ${pad("USES", usesWidth)}  DESCRIPTION`;
   console.log(pc.dim(header));
   console.log(
-    pc.dim(`  ${"-".repeat(nameWidth)}  ${"-".repeat(verWidth)}  ${"-".repeat(descMax)}`),
+    pc.dim(`  ${"-".repeat(nameWidth)}  ${"-".repeat(usesWidth)}  ${"-".repeat(descMax)}`),
   );
 
   for (const r of results) {
     const name = highlightMatch(pad(r.name, nameWidth), query);
-    const ver = pad(r.version, verWidth);
+    const uses = pad(formatDownloads(r.useCount), usesWidth);
+    const badge = r.verified ? pc.green(" ✓") : "";
     const desc = truncate(r.description || pc.dim("(no description)"), descMax);
-    console.log(`  ${name}  ${pc.dim(ver)}  ${desc}`);
+    console.log(`  ${name}${badge}  ${uses}  ${desc}`);
   }
 }
 

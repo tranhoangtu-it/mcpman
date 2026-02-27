@@ -3,6 +3,8 @@ import pc from "picocolors";
 import type { CheckResult } from "../core/diagnostics.js";
 import { checkServerHealth } from "../core/health-checker.js";
 import type { HealthResult } from "../core/health-checker.js";
+import { checkPluginHealth } from "../core/plugin-health-checker.js";
+import type { PluginHealthSummary } from "../core/plugin-health-checker.js";
 import { getInstalledServers } from "../core/server-inventory.js";
 
 const CHECK_ICON = {
@@ -49,6 +51,12 @@ export default defineCommand({
       else failed++;
     }
 
+    // Plugin health checks
+    const pluginSummary = checkPluginHealth();
+    if (pluginSummary.total > 0) {
+      printPluginSection(pluginSummary);
+    }
+
     // Summary
     console.log(pc.dim(`  ${"─".repeat(50)}`));
     const parts: string[] = [];
@@ -56,7 +64,14 @@ export default defineCommand({
     if (failed > 0) parts.push(pc.red(`${failed} unhealthy`));
     console.log(`  Summary: ${parts.join(", ")}`);
 
-    if (failed > 0) {
+    if (pluginSummary.total > 0) {
+      const pParts: string[] = [];
+      if (pluginSummary.healthy > 0) pParts.push(pc.green(`${pluginSummary.healthy} ok`));
+      if (pluginSummary.unhealthy > 0) pParts.push(pc.red(`${pluginSummary.unhealthy} broken`));
+      console.log(`  Plugins: ${pParts.join(", ")}`);
+    }
+
+    if (failed > 0 || pluginSummary.unhealthy > 0) {
       if (!args.fix) {
         console.log(pc.dim(`  Run ${pc.cyan("mcpman doctor --fix")} for fix suggestions.\n`));
       }
@@ -66,6 +81,20 @@ export default defineCommand({
     console.log();
   },
 });
+
+function printPluginSection(summary: PluginHealthSummary): void {
+  console.log(pc.bold(`  Plugins (${summary.total})`));
+  for (const r of summary.results) {
+    const icon = r.loadable && r.prefixUnique && r.resolvable ? pc.green("✓") : pc.red("✗");
+    const label = r.pluginName ? `${r.packageName} (${r.pluginName})` : r.packageName;
+    const prefix = r.prefix ? pc.dim(` [${r.prefix}]`) : "";
+    console.log(`    ${icon} ${label}${prefix}`);
+    if (r.error) {
+      console.log(`      ${pc.yellow("→")} ${r.error}`);
+    }
+  }
+  console.log();
+}
 
 function printServerResult(result: HealthResult, showFix: boolean): void {
   const icon = result.status === "healthy" ? pc.green("●") : pc.red("●");

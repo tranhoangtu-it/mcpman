@@ -14,8 +14,9 @@ export interface NpmSearchResult {
 export interface SmitherySearchResult {
   name: string;
   description: string;
-  version: string;
-  runtime: string;
+  useCount: number;
+  verified: boolean;
+  homepage: string;
 }
 
 const SEARCH_TIMEOUT_MS = 10_000;
@@ -52,9 +53,10 @@ export async function searchNpm(query: string, limit = 20): Promise<NpmSearchRes
 }
 
 // Search Smithery registry for MCP servers (best effort — returns [] on any failure)
+// Real API: GET https://registry.smithery.ai/servers?q=<query>&pageSize=<limit>
 export async function searchSmithery(query: string, limit = 20): Promise<SmitherySearchResult[]> {
   const cap = Math.min(limit, 100);
-  const url = `https://api.smithery.ai/v1/servers?q=${encodeURIComponent(query)}&limit=${cap}`;
+  const url = `https://registry.smithery.ai/servers?q=${encodeURIComponent(query)}&pageSize=${cap}`;
 
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS) });
@@ -65,10 +67,11 @@ export async function searchSmithery(query: string, limit = 20): Promise<Smither
 
     return servers
       .map((s: Record<string, unknown>) => ({
-        name: typeof s.name === "string" ? s.name : "",
+        name: typeof s.qualifiedName === "string" ? s.qualifiedName : "",
         description: typeof s.description === "string" ? s.description : "",
-        version: typeof s.version === "string" ? s.version : "latest",
-        runtime: typeof s.runtime === "string" ? s.runtime : "node",
+        useCount: typeof s.useCount === "number" ? s.useCount : 0,
+        verified: s.verified === true,
+        homepage: typeof s.homepage === "string" ? s.homepage : "",
       }))
       .filter((r) => r.name !== "");
   } catch {

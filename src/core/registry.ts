@@ -24,24 +24,25 @@ export function computeIntegrity(resolvedUrl: string): string {
   return `sha512-${hash}`;
 }
 
-// Resolve server metadata from Smithery registry
-// Smithery API: GET https://registry.smithery.ai/servers/{name}
+/**
+ * Resolve server metadata from Smithery registry.
+ * Smithery API: GET https://registry.smithery.ai/servers?q=<name>&pageSize=1
+ * No individual server endpoint — search by qualifiedName and pick best match.
+ */
 export async function resolveFromSmithery(name: string): Promise<ServerMetadata> {
-  const url = `https://registry.smithery.ai/servers/${encodeURIComponent(name)}`;
+  const url = `https://registry.smithery.ai/servers?q=${encodeURIComponent(name)}&pageSize=5`;
 
-  let data: Record<string, unknown>;
+  let servers: SmitheryServerEntry[];
   try {
     const res = await fetch(url, {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(8000),
     });
-    if (res.status === 404) {
-      throw new Error(`Server '${name}' not found on Smithery registry`);
-    }
     if (!res.ok) {
       throw new Error(`Smithery API error: ${res.status}`);
     }
-    data = (await res.json()) as Record<string, unknown>;
+    const data = (await res.json()) as { servers?: SmitheryServerEntry[] };
+    servers = Array.isArray(data.servers) ? data.servers : [];
   } catch (err) {
     if (err instanceof Error && err.message.includes("not found")) throw err;
     throw new Error(
@@ -49,23 +50,40 @@ export async function resolveFromSmithery(name: string): Promise<ServerMetadata>
     );
   }
 
-  const version = typeof data.version === "string" ? data.version : "latest";
-  const command = typeof data.command === "string" ? data.command : "npx";
-  const args = Array.isArray(data.args) ? (data.args as string[]) : ["-y", `${name}@${version}`];
-  const envVars = Array.isArray(data.envVars) ? (data.envVars as EnvVarSpec[]) : [];
-  const resolved =
-    typeof data.resolved === "string" ? data.resolved : `smithery:${name}@${version}`;
+  // Find exact match by qualifiedName, then displayName, fallback to first result
+  const exact =
+    servers.find((s) => s.qualifiedName === name) ??
+    servers.find((s) => s.displayName?.toLowerCase() === name.toLowerCase()) ??
+    servers[0];
+
+  if (!exact) {
+    throw new Error(`Server '${name}' not found on Smithery registry`);
+  }
+
+  const qualifiedName = exact.qualifiedName ?? name;
 
   return {
-    name,
-    version,
-    description: typeof data.description === "string" ? data.description : "",
+    name: qualifiedName,
+    version: "latest",
+    description: typeof exact.description === "string" ? exact.description : "",
     runtime: "node",
-    command,
-    args,
-    envVars,
-    resolved,
+    command: "npx",
+    args: ["-y", "@smithery/cli@latest", "run", qualifiedName],
+    envVars: [],
+    resolved: `smithery:${qualifiedName}`,
   };
+}
+
+/** Shape of a Smithery registry server entry */
+interface SmitheryServerEntry {
+  qualifiedName?: string;
+  displayName?: string;
+  description?: string;
+  useCount?: number;
+  verified?: boolean;
+  remote?: boolean;
+  isDeployed?: boolean;
+  homepage?: string;
 }
 
 // Resolve server metadata from npm registry

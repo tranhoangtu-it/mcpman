@@ -1,0 +1,9 @@
+{
+  "name": "mcpman-plugin-example",
+  "version": "0.1.0",
+  "description": "Example mcpman plugin for custom registry integration",
+  "main": "index.js",
+  "type": "commonjs",
+  "keywords": ["mcpman", "mcp", "plugin", "example"],
+  "license": "MIT"
+}
