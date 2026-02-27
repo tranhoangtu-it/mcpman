@@ -26,9 +26,7 @@ export function computeIntegrity(resolvedUrl: string): string {
 
 // Resolve server metadata from Smithery registry
 // Smithery API: GET https://registry.smithery.ai/servers/{name}
-export async function resolveFromSmithery(
-  name: string
-): Promise<ServerMetadata> {
+export async function resolveFromSmithery(name: string): Promise<ServerMetadata> {
   const url = `https://registry.smithery.ai/servers/${encodeURIComponent(name)}`;
 
   let data: Record<string, unknown>;
@@ -47,24 +45,16 @@ export async function resolveFromSmithery(
   } catch (err) {
     if (err instanceof Error && err.message.includes("not found")) throw err;
     throw new Error(
-      `Cannot reach Smithery registry: ${err instanceof Error ? err.message : String(err)}`
+      `Cannot reach Smithery registry: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
-  const version =
-    typeof data.version === "string" ? data.version : "latest";
-  const command =
-    typeof data.command === "string" ? data.command : "npx";
-  const args = Array.isArray(data.args)
-    ? (data.args as string[])
-    : ["-y", `${name}@${version}`];
-  const envVars = Array.isArray(data.envVars)
-    ? (data.envVars as EnvVarSpec[])
-    : [];
+  const version = typeof data.version === "string" ? data.version : "latest";
+  const command = typeof data.command === "string" ? data.command : "npx";
+  const args = Array.isArray(data.args) ? (data.args as string[]) : ["-y", `${name}@${version}`];
+  const envVars = Array.isArray(data.envVars) ? (data.envVars as EnvVarSpec[]) : [];
   const resolved =
-    typeof data.resolved === "string"
-      ? data.resolved
-      : `smithery:${name}@${version}`;
+    typeof data.resolved === "string" ? data.resolved : `smithery:${name}@${version}`;
 
   return {
     name,
@@ -79,9 +69,7 @@ export async function resolveFromSmithery(
 }
 
 // Resolve server metadata from npm registry
-export async function resolveFromNpm(
-  packageName: string
-): Promise<ServerMetadata> {
+export async function resolveFromNpm(packageName: string): Promise<ServerMetadata> {
   const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`;
 
   let data: Record<string, unknown>;
@@ -100,7 +88,7 @@ export async function resolveFromNpm(
   } catch (err) {
     if (err instanceof Error && err.message.includes("not found")) throw err;
     throw new Error(
-      `Cannot reach npm registry: ${err instanceof Error ? err.message : String(err)}`
+      `Cannot reach npm registry: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
@@ -109,18 +97,13 @@ export async function resolveFromNpm(
 
   // Check for mcp field in package.json (emerging convention)
   const mcpField =
-    data.mcp && typeof data.mcp === "object"
-      ? (data.mcp as Record<string, unknown>)
-      : null;
-  const envVars: EnvVarSpec[] = mcpField?.envVars
-    ? (mcpField.envVars as EnvVarSpec[])
-    : [];
+    data.mcp && typeof data.mcp === "object" ? (data.mcp as Record<string, unknown>) : null;
+  const envVars: EnvVarSpec[] = mcpField?.envVars ? (mcpField.envVars as EnvVarSpec[]) : [];
 
   return {
     name: packageName,
     version,
-    description:
-      typeof data.description === "string" ? data.description : "",
+    description: typeof data.description === "string" ? data.description : "",
     runtime: "node",
     command: "npx",
     args: ["-y", `${packageName}@${version}`],
@@ -130,9 +113,7 @@ export async function resolveFromNpm(
 }
 
 // Resolve from GitHub URL (best-effort)
-export async function resolveFromGitHub(
-  githubUrl: string
-): Promise<ServerMetadata> {
+export async function resolveFromGitHub(githubUrl: string): Promise<ServerMetadata> {
   // Extract owner/repo from URL: https://github.com/owner/repo
   const match = githubUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
   if (!match) {
@@ -151,16 +132,13 @@ export async function resolveFromGitHub(
     // best-effort, continue with defaults
   }
 
-  const version =
-    typeof pkgData.version === "string" ? pkgData.version : "main";
-  const name =
-    typeof pkgData.name === "string" ? pkgData.name : `${owner}/${repo}`;
+  const version = typeof pkgData.version === "string" ? pkgData.version : "main";
+  const name = typeof pkgData.name === "string" ? pkgData.name : `${owner}/${repo}`;
 
   return {
     name,
     version,
-    description:
-      typeof pkgData.description === "string" ? pkgData.description : "",
+    description: typeof pkgData.description === "string" ? pkgData.description : "",
     runtime: "node",
     command: "npx",
     args: ["-y", githubUrl],

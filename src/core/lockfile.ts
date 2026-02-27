@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import type { ClientType } from "../clients/types.js";
 
 export const LOCKFILE_NAME = "mcpman.lock";
@@ -64,7 +64,7 @@ function serialize(data: LockfileData): string {
   const sorted: LockfileData = {
     lockfileVersion: data.lockfileVersion,
     servers: Object.fromEntries(
-      Object.entries(data.servers).sort(([a], [b]) => a.localeCompare(b))
+      Object.entries(data.servers).sort(([a], [b]) => a.localeCompare(b)),
     ),
   };
   return JSON.stringify(sorted, null, 2) + "\n";
@@ -82,11 +82,7 @@ export function writeLockfile(data: LockfileData, filePath?: string): void {
   fs.renameSync(tmp, target);
 }
 
-export function addEntry(
-  name: string,
-  entry: LockEntry,
-  filePath?: string
-): void {
+export function addEntry(name: string, entry: LockEntry, filePath?: string): void {
   const data = readLockfile(filePath);
   data.servers[name] = entry;
   writeLockfile(data, filePath);
@@ -100,10 +96,7 @@ export function removeEntry(name: string, filePath?: string): void {
   }
 }
 
-export function getLockedVersion(
-  name: string,
-  filePath?: string
-): string | undefined {
+export function getLockedVersion(name: string, filePath?: string): string | undefined {
   const data = readLockfile(filePath);
   return data.servers[name]?.version;
 }

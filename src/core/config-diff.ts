@@ -50,7 +50,7 @@ export interface DiffOptions {
 export function computeDiff(
   lockfile: LockfileData,
   clientConfigs: Map<ClientType, ClientConfig>,
-  options: DiffOptions = {}
+  options: DiffOptions = {},
 ): SyncAction[] {
   const actions: SyncAction[] = [];
 
@@ -94,7 +94,7 @@ export function computeDiff(
 export function computeDiffFromClient(
   sourceClient: ClientType,
   clientConfigs: Map<ClientType, ClientConfig>,
-  options: DiffOptions = {}
+  options: DiffOptions = {},
 ): SyncAction[] {
   const actions: SyncAction[] = [];
   const sourceConfig = clientConfigs.get(sourceClient);

@@ -1,9 +1,9 @@
-import { defineCommand } from "citty";
 import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
 import pc from "picocolors";
 import { getInstalledClients } from "../clients/client-detector.js";
-import { getInstalledServers } from "../core/server-inventory.js";
 import type { ClientType } from "../clients/types.js";
+import { getInstalledServers } from "../core/server-inventory.js";
 
 const CLIENT_DISPLAY: Record<string, string> = {
   "claude-desktop": "Claude",
@@ -52,7 +52,9 @@ export default defineCommand({
     if (!match) {
       p.log.warn(`Server "${serverName}" is not installed.`);
       // Suggest similar names
-      const similar = servers.filter((s) => s.name.includes(serverName) || serverName.includes(s.name));
+      const similar = servers.filter(
+        (s) => s.name.includes(serverName) || serverName.includes(s.name),
+      );
       if (similar.length > 0) {
         p.log.info(`Did you mean: ${similar.map((s) => pc.cyan(s.name)).join(", ")}?`);
       }

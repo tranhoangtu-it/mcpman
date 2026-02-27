@@ -1,10 +1,10 @@
 import type { ServerEntry } from "../clients/types.js";
 import {
+  type CheckResult,
   checkEnvVars,
   checkMcpHandshake,
   checkProcessSpawn,
   checkRuntime,
-  type CheckResult,
 } from "./diagnostics.js";
 
 export type HealthStatus = "healthy" | "unhealthy" | "unknown";
@@ -19,10 +19,7 @@ export interface HealthResult {
  * Run all 4 health checks for a server and return detailed results.
  * Checks: runtime → process spawn → MCP handshake → env vars
  */
-export async function checkServerHealth(
-  name: string,
-  config: ServerEntry
-): Promise<HealthResult> {
+export async function checkServerHealth(name: string, config: ServerEntry): Promise<HealthResult> {
   const checks: CheckResult[] = [];
 
   // 1. Runtime check
@@ -31,24 +28,35 @@ export async function checkServerHealth(
 
   // 2. Process spawn check (skip if runtime missing)
   if (!runtimeCheck.passed) {
-    checks.push({ name: "Process", passed: false, skipped: true, message: "skipped (runtime missing)" });
-    checks.push({ name: "MCP handshake", passed: false, skipped: true, message: "skipped (runtime missing)" });
+    checks.push({
+      name: "Process",
+      passed: false,
+      skipped: true,
+      message: "skipped (runtime missing)",
+    });
+    checks.push({
+      name: "MCP handshake",
+      passed: false,
+      skipped: true,
+      message: "skipped (runtime missing)",
+    });
   } else {
-    const spawnCheck = await checkProcessSpawn(
-      config.command,
-      config.args ?? [],
-      config.env ?? {}
-    );
+    const spawnCheck = await checkProcessSpawn(config.command, config.args ?? [], config.env ?? {});
     checks.push(spawnCheck);
 
     // 3. MCP handshake (skip if process can't spawn)
     if (!spawnCheck.passed) {
-      checks.push({ name: "MCP handshake", passed: false, skipped: true, message: "skipped (process failed)" });
+      checks.push({
+        name: "MCP handshake",
+        passed: false,
+        skipped: true,
+        message: "skipped (process failed)",
+      });
     } else {
       const handshakeCheck = await checkMcpHandshake(
         config.command,
         config.args ?? [],
-        config.env ?? {}
+        config.env ?? {},
       );
       checks.push(handshakeCheck);
     }
@@ -71,7 +79,7 @@ export async function checkServerHealth(
  */
 export async function quickHealthProbe(
   config: ServerEntry,
-  timeoutMs = 3000
+  timeoutMs = 3000,
 ): Promise<HealthStatus> {
   try {
     const runtimeCheck = await checkRuntime(config.command);
@@ -81,7 +89,7 @@ export async function quickHealthProbe(
       config.command,
       config.args ?? [],
       config.env ?? {},
-      timeoutMs
+      timeoutMs,
     );
     return handshake.passed ? "healthy" : "unhealthy";
   } catch {

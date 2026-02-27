@@ -4,15 +4,10 @@
  * Manages encrypted secrets stored in the local vault (~/.mcpman/vault.enc).
  */
 
+import * as p from "@clack/prompts";
 import { defineCommand } from "citty";
 import pc from "picocolors";
-import * as p from "@clack/prompts";
-import {
-  setSecret,
-  removeSecret,
-  listSecrets,
-  getMasterPassword,
-} from "../core/vault-service.js";
+import { getMasterPassword, listSecrets, removeSecret, setSecret } from "../core/vault-service.js";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -58,7 +53,8 @@ const setCommand = defineCommand({
 
     p.intro(pc.cyan("mcpman secrets set"));
 
-    const isNew = listSecrets(args.server).length === 0 ||
+    const isNew =
+      listSecrets(args.server).length === 0 ||
       !listSecrets(args.server)[0]?.keys.includes(parsed.key);
 
     // First-time vault creation: confirm password
@@ -70,9 +66,7 @@ const setCommand = defineCommand({
     spin.start("Encrypting secret...");
     try {
       setSecret(args.server, parsed.key, parsed.value, password);
-      spin.stop(
-        `${pc.green("✓")} Stored ${pc.bold(parsed.key)} for ${pc.cyan(args.server)}`
-      );
+      spin.stop(`${pc.green("✓")} Stored ${pc.bold(parsed.key)} for ${pc.cyan(args.server)}`);
     } catch (err) {
       spin.stop(pc.red("✗") + " Failed to store secret");
       console.error(pc.dim(String(err)));
@@ -114,7 +108,11 @@ const listCommand = defineCommand({
     }
 
     const total = results.reduce((n, r) => n + r.keys.length, 0);
-    console.log(pc.dim(`  ${total} secret${total !== 1 ? "s" : ""} in ${results.length} server${results.length !== 1 ? "s" : ""}`));
+    console.log(
+      pc.dim(
+        `  ${total} secret${total !== 1 ? "s" : ""} in ${results.length} server${results.length !== 1 ? "s" : ""}`,
+      ),
+    );
   },
 });
 

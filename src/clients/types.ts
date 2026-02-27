@@ -32,7 +32,7 @@ export class ConfigNotFoundError extends Error {
 export class ConfigParseError extends Error {
   constructor(
     public configPath: string,
-    cause: unknown
+    cause: unknown,
   ) {
     super(`Failed to parse config: ${configPath} — ${String(cause)}`);
     this.name = "ConfigParseError";
@@ -42,7 +42,7 @@ export class ConfigParseError extends Error {
 export class ConfigWriteError extends Error {
   constructor(
     public configPath: string,
-    cause: unknown
+    cause: unknown,
   ) {
     super(`Failed to write config: ${configPath} — ${String(cause)}`);
     this.name = "ConfigWriteError";

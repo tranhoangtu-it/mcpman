@@ -6,7 +6,7 @@ export async function checkProcessSpawn(
   command: string,
   args: string[],
   env: Record<string, string>,
-  timeoutMs = 3000
+  timeoutMs = 3000,
 ): Promise<CheckResult> {
   return new Promise((resolve) => {
     let settled = false;
@@ -61,7 +61,7 @@ export async function checkMcpHandshake(
   command: string,
   args: string[],
   env: Record<string, string>,
-  timeoutMs = 5000
+  timeoutMs = 5000,
 ): Promise<CheckResult> {
   return new Promise((resolve) => {
     let settled = false;
@@ -76,7 +76,11 @@ export async function checkMcpHandshake(
     const done = (result: CheckResult) => {
       if (!settled) {
         settled = true;
-        try { child.kill("SIGTERM"); } catch { /* ignore */ }
+        try {
+          child.kill("SIGTERM");
+        } catch {
+          /* ignore */
+        }
         resolve(result);
       }
     };
@@ -99,17 +103,27 @@ export async function checkMcpHandshake(
           const parsed = JSON.parse(trimmed) as Record<string, unknown>;
           if (parsed.jsonrpc === "2.0" && parsed.id === 1) {
             clearTimeout(timer);
-            done({ name: "MCP handshake", passed: true, message: `responds in ${Date.now() - start}ms` });
+            done({
+              name: "MCP handshake",
+              passed: true,
+              message: `responds in ${Date.now() - start}ms`,
+            });
             return;
           }
-        } catch { /* not JSON yet */ }
+        } catch {
+          /* not JSON yet */
+        }
       }
     });
 
     child.on("exit", (code) => {
       clearTimeout(timer);
       if (!settled) {
-        done({ name: "MCP handshake", passed: false, message: `process exited with code ${code} before responding` });
+        done({
+          name: "MCP handshake",
+          passed: false,
+          message: `process exited with code ${code} before responding`,
+        });
       }
     });
 

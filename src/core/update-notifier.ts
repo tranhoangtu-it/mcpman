@@ -1,9 +1,9 @@
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import pc from "picocolors";
-import { checkAllVersions, type UpdateInfo, type UpdateCheckCache } from "./version-checker.js";
 import type { LockfileData } from "./lockfile.js";
+import { type UpdateCheckCache, type UpdateInfo, checkAllVersions } from "./version-checker.js";
 
 const CACHE_FILE = path.join(os.homedir(), ".mcpman", ".update-check");
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -61,16 +61,14 @@ export function showUpdateBanner(): void {
 
   process.stderr.write("\n");
   process.stderr.write(
-    pc.yellow(`  Update available: ${available.length} server(s) can be updated.\n`)
+    pc.yellow(`  Update available: ${available.length} server(s) can be updated.\n`),
   );
-  process.stderr.write(
-    pc.dim(`  Run ${pc.cyan("mcpman update")} to upgrade.\n`)
-  );
+  process.stderr.write(pc.dim(`  Run ${pc.cyan("mcpman update")} to upgrade.\n`));
 
   for (const u of available) {
     const typeTag = u.updateType ? pc.dim(` [${u.updateType}]`) : "";
     process.stderr.write(
-      `  ${pc.dim("•")} ${u.server}: ${pc.red(u.currentVersion)} ${pc.dim("→")} ${pc.green(u.latestVersion)}${typeTag}\n`
+      `  ${pc.dim("•")} ${u.server}: ${pc.red(u.currentVersion)} ${pc.dim("→")} ${pc.green(u.latestVersion)}${typeTag}\n`,
     );
   }
 
@@ -78,9 +76,7 @@ export function showUpdateBanner(): void {
 }
 
 // Full check (used by update command after applying updates)
-export async function checkForUpdates(
-  lockfile: LockfileData
-): Promise<UpdateInfo[]> {
+export async function checkForUpdates(lockfile: LockfileData): Promise<UpdateInfo[]> {
   const updates = await checkAllVersions(lockfile);
   writeUpdateCache({ lastCheck: new Date().toISOString(), updates });
   return updates;

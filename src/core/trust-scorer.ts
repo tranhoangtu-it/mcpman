@@ -8,11 +8,11 @@ export interface TrustScore {
 }
 
 // Scoring weights (must sum to 1.0)
-const WEIGHT_VULNS = 0.30;
-const WEIGHT_DOWNLOADS = 0.20;
+const WEIGHT_VULNS = 0.3;
+const WEIGHT_DOWNLOADS = 0.2;
 const WEIGHT_AGE = 0.15;
 const WEIGHT_PUBLISH_FREQ = 0.15;
-const WEIGHT_MAINTAINERS = 0.20;
+const WEIGHT_MAINTAINERS = 0.2;
 
 // Vulnerability sub-score: deduct per severity
 function vulnScore(vulns: VulnInfo[]): number {
@@ -76,10 +76,7 @@ function toRiskLevel(score: number): RiskLevel {
 }
 
 // Main export: compute weighted trust score from metadata + vulns
-export function computeTrustScore(
-  metadata: PackageMetadata | null,
-  vulns: VulnInfo[]
-): TrustScore {
+export function computeTrustScore(metadata: PackageMetadata | null, vulns: VulnInfo[]): TrustScore {
   // No metadata available (non-npm or fetch failed)
   if (!metadata) {
     const vScore = vulnScore(vulns);

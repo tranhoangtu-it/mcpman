@@ -146,7 +146,7 @@ export function setSecret(
   key: string,
   value: string,
   password: string,
-  vaultPath = getVaultPath()
+  vaultPath = getVaultPath(),
 ): void {
   const vault = readVault(vaultPath);
   if (!vault.servers[server]) vault.servers[server] = {};
@@ -159,7 +159,7 @@ export function getSecret(
   server: string,
   key: string,
   password: string,
-  vaultPath = getVaultPath()
+  vaultPath = getVaultPath(),
 ): string | null {
   const vault = readVault(vaultPath);
   const entry = vault.servers[server]?.[key];
@@ -171,7 +171,7 @@ export function getSecret(
 export function getSecretsForServer(
   server: string,
   password: string,
-  vaultPath = getVaultPath()
+  vaultPath = getVaultPath(),
 ): Record<string, string> {
   const vault = readVault(vaultPath);
   const entries = vault.servers[server];
@@ -184,11 +184,7 @@ export function getSecretsForServer(
 }
 
 /** Remove a specific secret. No-op if not found. */
-export function removeSecret(
-  server: string,
-  key: string,
-  vaultPath = getVaultPath()
-): void {
+export function removeSecret(server: string, key: string, vaultPath = getVaultPath()): void {
   const vault = readVault(vaultPath);
   if (vault.servers[server]) {
     delete vault.servers[server][key];
@@ -202,7 +198,7 @@ export function removeSecret(
 /** List servers (and their key names) without decryption. */
 export function listSecrets(
   server?: string,
-  vaultPath = getVaultPath()
+  vaultPath = getVaultPath(),
 ): Array<{ server: string; keys: string[] }> {
   const vault = readVault(vaultPath);
   const entries = server

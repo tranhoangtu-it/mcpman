@@ -1,14 +1,14 @@
-import { defineCommand } from "citty";
 import * as p from "@clack/prompts";
-import pc from "picocolors";
+import { defineCommand } from "citty";
 import { createSpinner } from "nanospinner";
+import pc from "picocolors";
+import type { ClientHandler } from "../clients/types.js";
 import { readLockfile } from "../core/lockfile.js";
-import { scanServer, scanAllServers } from "../core/security-scanner.js";
+import { scanAllServers, scanServer } from "../core/security-scanner.js";
 import type { SecurityReport } from "../core/security-scanner.js";
+import { applyServerUpdate } from "../core/server-updater.js";
 import type { RiskLevel } from "../core/trust-scorer.js";
 import { checkVersion } from "../core/version-checker.js";
-import { applyServerUpdate } from "../core/server-updater.js";
-import type { ClientHandler } from "../clients/types.js";
 
 // Color-code risk level text
 function colorRisk(level: RiskLevel | "UNKNOWN", score: number | null): string {
@@ -45,10 +45,13 @@ function countVulns(vulns: SecurityReport["vulnerabilities"]): string {
 function printReport(report: SecurityReport): void {
   const riskColored = colorRisk(report.riskLevel, report.score);
   const icon =
-    report.riskLevel === "LOW" ? pc.green("●") :
-    report.riskLevel === "MEDIUM" ? pc.yellow("●") :
-    report.riskLevel === "UNKNOWN" ? pc.dim("○") :
-    pc.red("●");
+    report.riskLevel === "LOW"
+      ? pc.green("●")
+      : report.riskLevel === "MEDIUM"
+        ? pc.yellow("●")
+        : report.riskLevel === "UNKNOWN"
+          ? pc.dim("○")
+          : pc.red("●");
 
   console.log(`  ${icon} ${pc.bold(report.server)}  Score: ${riskColored}`);
 
@@ -59,14 +62,15 @@ function printReport(report: SecurityReport): void {
   }
 
   if (report.metadata) {
-    const { weeklyDownloads, packageAge, lastPublish, maintainerCount, deprecated } = report.metadata;
+    const { weeklyDownloads, packageAge, lastPublish, maintainerCount, deprecated } =
+      report.metadata;
     const dlStr = weeklyDownloads.toLocaleString();
     console.log(
       `    ${pc.dim("Downloads:")} ${dlStr}/week  ${pc.dim("|")}  ` +
-      `${pc.dim("Age:")} ${packageAge}d  ${pc.dim("|")}  ` +
-      `${pc.dim("Last publish:")} ${daysAgo(lastPublish)}  ${pc.dim("|")}  ` +
-      `${pc.dim("Maintainers:")} ${maintainerCount}` +
-      (deprecated ? pc.red("  [DEPRECATED]") : "")
+        `${pc.dim("Age:")} ${packageAge}d  ${pc.dim("|")}  ` +
+        `${pc.dim("Last publish:")} ${daysAgo(lastPublish)}  ${pc.dim("|")}  ` +
+        `${pc.dim("Maintainers:")} ${maintainerCount}` +
+        (deprecated ? pc.red("  [DEPRECATED]") : ""),
     );
   }
 
@@ -115,7 +119,9 @@ export default defineCommand({
     const { servers } = lockfile;
 
     if (Object.keys(servers).length === 0) {
-      console.log(pc.dim("\n  No MCP servers installed. Run mcpman install <server> to get started.\n"));
+      console.log(
+        pc.dim("\n  No MCP servers installed. Run mcpman install <server> to get started.\n"),
+      );
       return;
     }
 
@@ -161,9 +167,7 @@ export default defineCommand({
     console.log(pc.dim("  " + "─".repeat(60)));
 
     // Summary
-    const withIssues = reports.filter(
-      (r) => r.riskLevel !== "LOW" && r.riskLevel !== "UNKNOWN"
-    );
+    const withIssues = reports.filter((r) => r.riskLevel !== "LOW" && r.riskLevel !== "UNKNOWN");
     const npmReports = reports.filter((r) => r.source === "npm");
     const parts: string[] = [];
     parts.push(`${reports.length} server(s) scanned`);
@@ -198,15 +202,11 @@ async function loadClients(): Promise<ClientHandler[]> {
 async function runAuditFix(
   reports: SecurityReport[],
   servers: Record<string, import("../core/lockfile.js").LockEntry>,
-  skipConfirm: boolean
+  skipConfirm: boolean,
 ): Promise<void> {
   // Only npm sources can be auto-updated
-  const npmWithVulns = reports.filter(
-    (r) => r.vulnerabilities.length > 0 && r.source === "npm"
-  );
-  const nonNpmWithVulns = reports.filter(
-    (r) => r.vulnerabilities.length > 0 && r.source !== "npm"
-  );
+  const npmWithVulns = reports.filter((r) => r.vulnerabilities.length > 0 && r.source === "npm");
+  const nonNpmWithVulns = reports.filter((r) => r.vulnerabilities.length > 0 && r.source !== "npm");
 
   // Notify about non-npm servers that need manual attention
   if (nonNpmWithVulns.length > 0) {
@@ -225,24 +225,30 @@ async function runAuditFix(
   // Check which npm servers actually have an update available
   const versionSpinner = createSpinner("Checking for available updates...").start();
   const versionChecks = await Promise.all(
-    npmWithVulns.map((r) => checkVersion(r.server, servers[r.server]))
+    npmWithVulns.map((r) => checkVersion(r.server, servers[r.server])),
   );
   versionSpinner.success({ text: "Version check complete" });
 
   const updatable = versionChecks.filter((u) => u.hasUpdate);
 
   if (updatable.length === 0) {
-    console.log(pc.yellow(
-      "  Vulnerable servers have no newer versions available yet.\n" +
-      "  Allow time for registry to publish fixes.\n"
-    ));
+    console.log(
+      pc.yellow(
+        "  Vulnerable servers have no newer versions available yet.\n" +
+          "  Allow time for registry to publish fixes.\n",
+      ),
+    );
     return;
   }
 
   // Show what will be updated
-  console.log(pc.bold(`\n  ${updatable.length} server(s) can be updated to fix vulnerabilities:\n`));
+  console.log(
+    pc.bold(`\n  ${updatable.length} server(s) can be updated to fix vulnerabilities:\n`),
+  );
   for (const u of updatable) {
-    console.log(`    ${pc.cyan("→")} ${u.server}  ${pc.dim(u.currentVersion)} → ${pc.green(u.latestVersion)}`);
+    console.log(
+      `    ${pc.cyan("→")} ${u.server}  ${pc.dim(u.currentVersion)} → ${pc.green(u.latestVersion)}`,
+    );
   }
   console.log();
 
@@ -262,13 +268,16 @@ async function runAuditFix(
 
   // Apply updates and collect results
   let successCount = 0;
-  const results: Array<{ server: string; from: string; to: string; ok: boolean; error?: string }> = [];
+  const results: Array<{ server: string; from: string; to: string; ok: boolean; error?: string }> =
+    [];
 
   for (const u of updatable) {
     const s = createSpinner(`Updating ${u.server}...`).start();
     const result = await applyServerUpdate(u.server, servers[u.server], clients);
     if (result.success) {
-      s.success({ text: `${pc.green("✓")} ${u.server}: ${result.fromVersion} → ${result.toVersion}` });
+      s.success({
+        text: `${pc.green("✓")} ${u.server}: ${result.fromVersion} → ${result.toVersion}`,
+      });
       successCount++;
     } else {
       s.error({ text: `${pc.red("✗")} ${u.server}: ${result.error}` });
@@ -291,7 +300,7 @@ async function runAuditFix(
     const rescanSpinner = createSpinner("Re-scanning updated servers...").start();
 
     const afterReports = await Promise.all(
-      updatedNames.map((name) => scanServer(name, freshLockfile.servers[name]))
+      updatedNames.map((name) => scanServer(name, freshLockfile.servers[name])),
     );
     rescanSpinner.success({ text: "Re-scan complete" });
 
@@ -303,7 +312,7 @@ async function runAuditFix(
       const afterVulns = after.vulnerabilities.length;
       const improved = afterVulns < beforeVulns ? pc.green("improved") : pc.yellow("unchanged");
       console.log(
-        `    ${pc.bold(after.server)}  vulns: ${beforeVulns} → ${afterVulns}  [${improved}]`
+        `    ${pc.bold(after.server)}  vulns: ${beforeVulns} → ${afterVulns}  [${improved}]`,
       );
     }
     console.log();

@@ -1,5 +1,5 @@
-import { promisify } from "node:util";
 import { exec } from "node:child_process";
+import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 
@@ -57,9 +57,17 @@ function getInstallFix(cmd: string): string {
       return isMac ? "brew install node" : isWin ? "winget install NodeJS" : "apt install nodejs";
     case "python3":
     case "python":
-      return isMac ? "brew install python" : isWin ? "winget install Python" : "apt install python3";
+      return isMac
+        ? "brew install python"
+        : isWin
+          ? "winget install Python"
+          : "apt install python3";
     case "docker":
-      return isMac ? "brew install --cask docker" : isWin ? "winget install Docker.DockerDesktop" : "apt install docker.io";
+      return isMac
+        ? "brew install --cask docker"
+        : isWin
+          ? "winget install Docker.DockerDesktop"
+          : "apt install docker.io";
     default:
       return `Install ${cmd} and ensure it's on your PATH`;
   }

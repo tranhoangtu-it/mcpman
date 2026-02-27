@@ -1,11 +1,11 @@
-import { defineCommand } from "citty";
 import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
 import pc from "picocolors";
-import { readLockfile, resolveLockfilePath } from "../core/lockfile.js";
-import { checkAllVersions, type UpdateInfo } from "../core/version-checker.js";
-import { writeUpdateCache } from "../core/update-notifier.js";
-import { applyServerUpdate } from "../core/server-updater.js";
 import type { ClientHandler } from "../clients/types.js";
+import { readLockfile, resolveLockfilePath } from "../core/lockfile.js";
+import { applyServerUpdate } from "../core/server-updater.js";
+import { writeUpdateCache } from "../core/update-notifier.js";
+import { type UpdateInfo, checkAllVersions } from "../core/version-checker.js";
 
 async function loadClients(): Promise<ClientHandler[]> {
   try {
@@ -119,7 +119,9 @@ export default defineCommand({
     }
 
     if (args.check) {
-      console.log(pc.yellow(`  ${outdated.length} update(s) available. Run mcpman update to apply.`));
+      console.log(
+        pc.yellow(`  ${outdated.length} update(s) available. Run mcpman update to apply.`),
+      );
       return;
     }
 
@@ -143,11 +145,7 @@ export default defineCommand({
     for (const update of outdated) {
       const s = p.spinner();
       s.start(`Updating ${update.server}...`);
-      const result = await applyServerUpdate(
-        update.server,
-        servers[update.server],
-        clients
-      );
+      const result = await applyServerUpdate(update.server, servers[update.server], clients);
       if (result.success) {
         s.stop(`${pc.green("✓")} ${update.server}: ${result.fromVersion} → ${result.toVersion}`);
         successCount++;

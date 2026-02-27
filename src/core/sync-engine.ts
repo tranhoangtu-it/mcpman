@@ -4,8 +4,8 @@
  * applies "add" actions via ClientHandler.addServer(), returns results.
  */
 
-import type { ClientHandler, ClientType, ClientConfig } from "../clients/types.js";
 import { getInstalledClients } from "../clients/client-detector.js";
+import type { ClientConfig, ClientHandler, ClientType } from "../clients/types.js";
 import type { SyncAction } from "./config-diff.js";
 
 export interface ApplyResult {
@@ -21,7 +21,7 @@ export interface ApplyResult {
  */
 export async function applySyncActions(
   actions: SyncAction[],
-  clients: Map<ClientType, ClientHandler>
+  clients: Map<ClientType, ClientHandler>,
 ): Promise<ApplyResult> {
   const result: ApplyResult = { applied: 0, removed: 0, failed: 0, errors: [] };
 
@@ -107,9 +107,11 @@ export async function getClientConfigs(): Promise<{
         handlers.set(handler.type, handler);
       } catch (err) {
         // Unreadable config — skip with warning (caller handles display)
-        console.warn(`[mcpman] Warning: could not read config for ${handler.displayName}: ${String(err)}`);
+        console.warn(
+          `[mcpman] Warning: could not read config for ${handler.displayName}: ${String(err)}`,
+        );
       }
-    })
+    }),
   );
 
   return { configs, handlers };

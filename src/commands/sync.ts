@@ -9,14 +9,14 @@
  *   --yes       Skip confirmation prompt
  */
 
-import { defineCommand } from "citty";
 import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
 import pc from "picocolors";
-import { readLockfile } from "../core/lockfile.js";
-import { computeDiff, computeDiffFromClient } from "../core/config-diff.js";
-import { applySyncActions, getClientConfigs } from "../core/sync-engine.js";
 import type { ClientType } from "../clients/types.js";
+import { computeDiff, computeDiffFromClient } from "../core/config-diff.js";
 import type { SyncAction } from "../core/config-diff.js";
+import { readLockfile } from "../core/lockfile.js";
+import { applySyncActions, getClientConfigs } from "../core/sync-engine.js";
 
 const VALID_CLIENTS: ClientType[] = ["claude-desktop", "cursor", "vscode", "windsurf"];
 
@@ -45,7 +45,8 @@ export default defineCommand({
     },
     source: {
       type: "string",
-      description: "Use a specific client as source of truth (claude-desktop, cursor, vscode, windsurf)",
+      description:
+        "Use a specific client as source of truth (claude-desktop, cursor, vscode, windsurf)",
     },
     yes: {
       type: "boolean",
@@ -59,7 +60,9 @@ export default defineCommand({
     // Validate --source flag if provided
     const sourceClient = args.source as ClientType | undefined;
     if (sourceClient && !VALID_CLIENTS.includes(sourceClient)) {
-      p.log.error(`Invalid --source "${sourceClient}". Must be one of: ${VALID_CLIENTS.join(", ")}`);
+      p.log.error(
+        `Invalid --source "${sourceClient}". Must be one of: ${VALID_CLIENTS.join(", ")}`,
+      );
       process.exit(1);
     }
 
@@ -70,7 +73,9 @@ export default defineCommand({
     spinner.stop(`Found ${configs.size} client(s)`);
 
     if (configs.size === 0) {
-      p.log.warn("No AI clients detected. Install Claude Desktop, Cursor, VS Code, or Windsurf first.");
+      p.log.warn(
+        "No AI clients detected. Install Claude Desktop, Cursor, VS Code, or Windsurf first.",
+      );
       process.exit(0);
     }
 
@@ -150,7 +155,9 @@ export default defineCommand({
       }
     }
 
-    p.outro(result.failed === 0 ? pc.green("Sync complete.") : pc.yellow("Sync complete with errors."));
+    p.outro(
+      result.failed === 0 ? pc.green("Sync complete.") : pc.yellow("Sync complete with errors."),
+    );
     process.exit(result.failed > 0 ? 1 : 0);
   },
 });
@@ -164,7 +171,10 @@ function printDiffTable(actions: SyncAction[]): void {
   }
 
   const nameWidth = Math.max(6, ...actions.map((a) => a.server.length));
-  const clientWidth = Math.max(6, ...actions.map((a) => CLIENT_DISPLAY[a.client]?.length ?? a.client.length));
+  const clientWidth = Math.max(
+    6,
+    ...actions.map((a) => CLIENT_DISPLAY[a.client]?.length ?? a.client.length),
+  );
 
   const header = `  ${pad("SERVER", nameWidth)}  ${pad("CLIENT", clientWidth)}  STATUS`;
   console.log(pc.dim(header));
@@ -173,17 +183,23 @@ function printDiffTable(actions: SyncAction[]): void {
   for (const action of actions) {
     const clientDisplay = CLIENT_DISPLAY[action.client] ?? action.client;
     const [icon, statusText] = formatAction(action.action);
-    console.log(`  ${pad(action.server, nameWidth)}  ${pad(clientDisplay, clientWidth)}  ${icon} ${statusText}`);
+    console.log(
+      `  ${pad(action.server, nameWidth)}  ${pad(clientDisplay, clientWidth)}  ${icon} ${statusText}`,
+    );
   }
   console.log("");
 }
 
 function formatAction(action: "add" | "extra" | "remove" | "ok"): [string, string] {
   switch (action) {
-    case "add":    return [pc.green("+"), pc.green("missing — will add")];
-    case "extra":  return [pc.yellow("?"), pc.yellow("extra (not in lockfile)")];
-    case "remove": return [pc.red("–"), pc.red("extra — will remove")];
-    case "ok":     return [pc.dim("·"), pc.dim("in sync")];
+    case "add":
+      return [pc.green("+"), pc.green("missing — will add")];
+    case "extra":
+      return [pc.yellow("?"), pc.yellow("extra (not in lockfile)")];
+    case "remove":
+      return [pc.red("–"), pc.red("extra — will remove")];
+    case "ok":
+      return [pc.dim("·"), pc.dim("in sync")];
   }
 }
 

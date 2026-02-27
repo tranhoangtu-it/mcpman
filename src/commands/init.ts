@@ -1,15 +1,15 @@
-import { defineCommand } from "citty";
-import * as p from "@clack/prompts";
 import path from "node:path";
+import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
+import type { ClientType } from "../clients/types.js";
 import {
-  findLockfile,
-  createEmptyLockfile,
-  addEntry,
   LOCKFILE_NAME,
   type LockEntry,
+  addEntry,
+  createEmptyLockfile,
+  findLockfile,
 } from "../core/lockfile.js";
 import { computeIntegrity } from "../core/registry.js";
-import type { ClientType } from "../clients/types.js";
 
 export default defineCommand({
   meta: {
@@ -131,8 +131,6 @@ export default defineCommand({
       }
     }
 
-    p.outro(
-      `Created ${LOCKFILE_NAME} with ${importCount} server(s) — commit to version control!`
-    );
+    p.outro(`Created ${LOCKFILE_NAME} with ${importCount} server(s) — commit to version control!`);
   },
 });

@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
-import pc from "picocolors";
 import { createSpinner } from "nanospinner";
+import pc from "picocolors";
 import { getPackageInfo } from "../core/package-info.js";
 import type { PackageInfo } from "../core/package-info.js";
 
@@ -51,8 +51,8 @@ function printInfo(info: PackageInfo): void {
   if (info.source === "npm") {
     console.log(
       `  ${pc.dim("Downloads:")}    ${info.weeklyDownloads.toLocaleString()}/week  ` +
-      `${pc.dim("|")}  ${pc.dim("Age:")} ${info.packageAge}d  ` +
-      `${pc.dim("|")}  ${pc.dim("Maintainers:")} ${info.maintainerCount}`
+        `${pc.dim("|")}  ${pc.dim("Age:")} ${info.packageAge}d  ` +
+        `${pc.dim("|")}  ${pc.dim("Maintainers:")} ${info.maintainerCount}`,
     );
     if (info.lastPublish) {
       console.log(`  ${pc.dim("Last publish:")} ${formatDaysAgo(info.lastPublish)}`);
@@ -121,7 +121,9 @@ export default defineCommand({
 
     if (!info) {
       spinner.error({ text: `Package not found: ${args.server}` });
-      console.log(pc.dim(`\n  "${args.server}" was not found in the npm registry or your lockfile.\n`));
+      console.log(
+        pc.dim(`\n  "${args.server}" was not found in the npm registry or your lockfile.\n`),
+      );
       process.exit(1);
     }
 

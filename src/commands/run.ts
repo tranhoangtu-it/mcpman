@@ -4,16 +4,12 @@
  * Env merge order (last wins): process.env < lockfile envVars < vault secrets < --env flags
  */
 
-import { defineCommand } from "citty";
 import { spawn } from "node:child_process";
+import { defineCommand } from "citty";
 import pc from "picocolors";
 import { readLockfile } from "../core/lockfile.js";
 import { parseEnvFlags } from "../core/server-resolver.js";
-import {
-  getMasterPassword,
-  getSecretsForServer,
-  listSecrets,
-} from "../core/vault-service.js";
+import { getMasterPassword, getSecretsForServer, listSecrets } from "../core/vault-service.js";
 
 export default defineCommand({
   meta: {

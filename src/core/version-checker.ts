@@ -1,4 +1,4 @@
-import type { LockfileData, LockEntry } from "./lockfile.js";
+import type { LockEntry, LockfileData } from "./lockfile.js";
 
 export interface UpdateInfo {
   server: string;
@@ -32,10 +32,7 @@ export function compareVersions(a: string, b: string): -1 | 0 | 1 {
 }
 
 // Determine update type from version diff
-function detectUpdateType(
-  current: string,
-  latest: string
-): "major" | "minor" | "patch" {
+function detectUpdateType(current: string, latest: string): "major" | "minor" | "patch" {
   const cParts = current.replace(/^v/, "").split(".").map(Number);
   const lParts = latest.replace(/^v/, "").split(".").map(Number);
   if ((lParts[0] ?? 0) > (cParts[0] ?? 0)) return "major";
@@ -51,7 +48,7 @@ async function fetchNpmLatest(packageName: string): Promise<string | null> {
       {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(8000),
-      }
+      },
     );
     if (!res.ok) return null;
     const data = (await res.json()) as Record<string, unknown>;
@@ -64,13 +61,10 @@ async function fetchNpmLatest(packageName: string): Promise<string | null> {
 // Fetch latest version from Smithery registry
 async function fetchSmitheryLatest(name: string): Promise<string | null> {
   try {
-    const res = await fetch(
-      `https://registry.smithery.ai/servers/${encodeURIComponent(name)}`,
-      {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(8000),
-      }
-    );
+    const res = await fetch(`https://registry.smithery.ai/servers/${encodeURIComponent(name)}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!res.ok) return null;
     const data = (await res.json()) as Record<string, unknown>;
     return typeof data.version === "string" ? data.version : null;
@@ -85,28 +79,20 @@ async function fetchGithubLatest(resolved: string): Promise<string | null> {
   if (!match) return null;
   const [, owner, repo] = match;
   try {
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/releases/latest`,
-      {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(8000),
-      }
-    );
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!res.ok) return null;
     const data = (await res.json()) as Record<string, unknown>;
-    return typeof data.tag_name === "string"
-      ? data.tag_name.replace(/^v/, "")
-      : null;
+    return typeof data.tag_name === "string" ? data.tag_name.replace(/^v/, "") : null;
   } catch {
     return null;
   }
 }
 
 // Check a single server's latest version against its lockfile entry
-export async function checkVersion(
-  name: string,
-  lockEntry: LockEntry
-): Promise<UpdateInfo> {
+export async function checkVersion(name: string, lockEntry: LockEntry): Promise<UpdateInfo> {
   const current = lockEntry.version;
   let latest: string | null = null;
 
@@ -140,9 +126,7 @@ export async function checkVersion(
 }
 
 // Run version checks in parallel (concurrency 5)
-export async function checkAllVersions(
-  lockfile: LockfileData
-): Promise<UpdateInfo[]> {
+export async function checkAllVersions(lockfile: LockfileData): Promise<UpdateInfo[]> {
   const entries = Object.entries(lockfile.servers);
   if (entries.length === 0) return [];
 

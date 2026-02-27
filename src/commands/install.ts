@@ -1,12 +1,8 @@
+import * as p from "@clack/prompts";
 import { defineCommand } from "citty";
 import { installServer } from "../core/installer.js";
-import {
-  readLockfile,
-  findLockfile,
-  resolveLockfilePath,
-} from "../core/lockfile.js";
+import { findLockfile, readLockfile, resolveLockfilePath } from "../core/lockfile.js";
 import { error, info } from "../utils/logger.js";
-import * as p from "@clack/prompts";
 
 export default defineCommand({
   meta: {

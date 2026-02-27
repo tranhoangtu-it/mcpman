@@ -5,21 +5,14 @@
  */
 
 import * as p from "@clack/prompts";
-import {
-  getSecretsForServer,
-  getMasterPassword,
-  setSecret,
-  listSecrets,
-} from "./vault-service.js";
+import { getMasterPassword, getSecretsForServer, listSecrets, setSecret } from "./vault-service.js";
 
 /**
  * Silently attempt to load vault secrets for a server.
  * Returns {} on any error (missing vault, wrong password, corrupt data).
  * Only prompts for master password if the server has vault entries.
  */
-export async function tryLoadVaultSecrets(
-  serverName: string
-): Promise<Record<string, string>> {
+export async function tryLoadVaultSecrets(serverName: string): Promise<Record<string, string>> {
   try {
     // Check if server has any secrets before prompting for password
     const entries = listSecrets(serverName);
@@ -43,7 +36,7 @@ export async function tryLoadVaultSecrets(
 export async function offerVaultSave(
   serverName: string,
   newVars: Record<string, string>,
-  yes: boolean
+  yes: boolean,
 ): Promise<void> {
   // Nothing to save
   if (Object.keys(newVars).length === 0) return;

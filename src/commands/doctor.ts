@@ -1,9 +1,9 @@
 import { defineCommand } from "citty";
 import pc from "picocolors";
-import { getInstalledServers } from "../core/server-inventory.js";
-import { checkServerHealth } from "../core/health-checker.js";
 import type { CheckResult } from "../core/diagnostics.js";
+import { checkServerHealth } from "../core/health-checker.js";
 import type { HealthResult } from "../core/health-checker.js";
+import { getInstalledServers } from "../core/server-inventory.js";
 
 const CHECK_ICON = {
   pass: pc.green("✓"),
@@ -30,7 +30,9 @@ export default defineCommand({
     const servers = await getInstalledServers();
 
     if (servers.length === 0) {
-      console.log(pc.dim("  No MCP servers installed. Run mcpman install <server> to get started."));
+      console.log(
+        pc.dim("  No MCP servers installed. Run mcpman install <server> to get started."),
+      );
       return;
     }
 
@@ -86,10 +88,7 @@ function printServerResult(result: HealthResult, showFix: boolean): void {
   console.log();
 }
 
-async function runParallel<T>(
-  tasks: (() => Promise<T>)[],
-  concurrency: number
-): Promise<T[]> {
+async function runParallel<T>(tasks: (() => Promise<T>)[], concurrency: number): Promise<T[]> {
   const results: T[] = [];
   const executing = new Set<Promise<void>>();
 

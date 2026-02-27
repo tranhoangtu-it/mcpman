@@ -1,12 +1,12 @@
+import type { ClientHandler } from "../clients/types.js";
 /**
  * Shared server update logic extracted from update.ts.
  * Used by both `mcpman update` and `mcpman audit --fix`.
  */
 import { addEntry } from "./lockfile.js";
-import { resolveServer } from "./server-resolver.js";
-import { computeIntegrity } from "./registry.js";
 import type { LockEntry } from "./lockfile.js";
-import type { ClientHandler } from "../clients/types.js";
+import { computeIntegrity } from "./registry.js";
+import { resolveServer } from "./server-resolver.js";
 
 export interface UpdateApplyResult {
   server: string;
@@ -27,7 +27,7 @@ export interface UpdateApplyResult {
 export async function applyServerUpdate(
   serverName: string,
   lockEntry: LockEntry,
-  clients: ClientHandler[]
+  clients: ClientHandler[],
 ): Promise<UpdateApplyResult> {
   const fromVersion = lockEntry.version;
 
@@ -55,9 +55,7 @@ export async function applyServerUpdate(
     });
 
     // Re-write to each client that had this server installed
-    const targetClients = clients.filter((c) =>
-      lockEntry.clients.includes(c.type)
-    );
+    const targetClients = clients.filter((c) => lockEntry.clients.includes(c.type));
     for (const client of targetClients) {
       try {
         await client.addServer(serverName, {

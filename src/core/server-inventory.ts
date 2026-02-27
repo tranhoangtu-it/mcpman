@@ -13,13 +13,9 @@ export interface InstalledServer {
  * Aggregate all installed MCP servers across all detected clients.
  * Servers present in multiple clients are merged into one entry with all client types listed.
  */
-export async function getInstalledServers(
-  clientFilter?: string
-): Promise<InstalledServer[]> {
+export async function getInstalledServers(clientFilter?: string): Promise<InstalledServer[]> {
   const clients = await getInstalledClients();
-  const filtered = clientFilter
-    ? clients.filter((c) => c.type === clientFilter)
-    : clients;
+  const filtered = clientFilter ? clients.filter((c) => c.type === clientFilter) : clients;
 
   const serverMap = new Map<string, InstalledServer>();
 

@@ -1,9 +1,9 @@
 import * as p from "@clack/prompts";
-import { resolveServer, detectSource, parseEnvFlags } from "./server-resolver.js";
+import type { ClientHandler, ServerEntry } from "../clients/types.js";
+import { offerVaultSave, tryLoadVaultSecrets } from "./installer-vault-helpers.js";
 import { addEntry, findLockfile } from "./lockfile.js";
 import { computeIntegrity } from "./registry.js";
-import type { ClientHandler, ServerEntry } from "../clients/types.js";
-import { tryLoadVaultSecrets, offerVaultSave } from "./installer-vault-helpers.js";
+import { detectSource, parseEnvFlags, resolveServer } from "./server-resolver.js";
 
 export interface InstallOptions {
   client?: string;
@@ -21,10 +21,7 @@ async function loadClients(): Promise<ClientHandler[]> {
   }
 }
 
-export async function installServer(
-  input: string,
-  options: InstallOptions = {}
-): Promise<void> {
+export async function installServer(input: string, options: InstallOptions = {}): Promise<void> {
   p.intro("mcpman install");
 
   // 1. Resolve metadata
@@ -52,7 +49,10 @@ export async function installServer(
   // 3. Select target client(s)
   let selectedClients: ClientHandler[];
   if (options.client) {
-    const found = clients.find((c) => c.type === options.client || c.displayName.toLowerCase() === options.client?.toLowerCase());
+    const found = clients.find(
+      (c) =>
+        c.type === options.client || c.displayName.toLowerCase() === options.client?.toLowerCase(),
+    );
     if (!found) {
       p.log.error(`Client '${options.client}' not found or not installed.`);
       p.log.info(`Available: ${clients.map((c) => c.type).join(", ")}`);
@@ -119,7 +119,9 @@ export async function installServer(
       clientTypes.push(client.type);
     } catch (err) {
       spinner.stop("Partial failure");
-      p.log.warn(`Failed to write to ${client.displayName}: ${err instanceof Error ? err.message : String(err)}`);
+      p.log.warn(
+        `Failed to write to ${client.displayName}: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
   spinner.stop("Config written");

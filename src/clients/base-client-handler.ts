@@ -12,7 +12,11 @@ export async function atomicWrite(filePath: string, content: string): Promise<vo
     await fs.promises.rename(tmpPath, filePath);
   } catch (err) {
     // Clean up tmp file if rename failed
-    try { await fs.promises.unlink(tmpPath); } catch { /* ignore */ }
+    try {
+      await fs.promises.unlink(tmpPath);
+    } catch {
+      /* ignore */
+    }
     throw err;
   }
 }
@@ -75,7 +79,7 @@ export abstract class BaseClientHandler implements ClientHandler {
   /** Merge ClientConfig back into raw JSON — override for non-standard formats */
   protected fromClientConfig(
     raw: Record<string, unknown>,
-    config: ClientConfig
+    config: ClientConfig,
   ): Record<string, unknown> {
     return { ...raw, mcpServers: config.servers };
   }

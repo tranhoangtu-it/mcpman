@@ -4,15 +4,10 @@
  * Manages persistent CLI configuration at ~/.mcpman/config.json.
  */
 
+import * as p from "@clack/prompts";
 import { defineCommand } from "citty";
 import pc from "picocolors";
-import * as p from "@clack/prompts";
-import {
-  readConfig,
-  writeConfig,
-  getConfigValue,
-  setConfigValue,
-} from "../core/config-service.js";
+import { getConfigValue, readConfig, setConfigValue, writeConfig } from "../core/config-service.js";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -48,9 +43,7 @@ const setCommand = defineCommand({
     try {
       const coerced = coerceValue(args.value);
       setConfigValue(args.key, coerced);
-      console.log(
-        `${pc.green("✓")} Set ${pc.bold(args.key)} = ${pc.cyan(String(coerced))}`
-      );
+      console.log(`${pc.green("✓")} Set ${pc.bold(args.key)} = ${pc.cyan(String(coerced))}`);
     } catch (err) {
       console.error(`${pc.red("✗")} ${String(err)}`);
       process.exit(1);

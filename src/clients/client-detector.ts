@@ -27,7 +27,7 @@ export function getClient(type: ClientType): ClientHandler {
 export async function getInstalledClients(): Promise<ClientHandler[]> {
   const all = getAllClientTypes().map(getClient);
   const results = await Promise.all(
-    all.map(async (handler) => ({ handler, installed: await handler.isInstalled() }))
+    all.map(async (handler) => ({ handler, installed: await handler.isInstalled() })),
   );
   return results.filter((r) => r.installed).map((r) => r.handler);
 }

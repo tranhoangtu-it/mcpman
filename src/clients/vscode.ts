@@ -1,6 +1,6 @@
+import { resolveConfigPath } from "../utils/paths.js";
 import { BaseClientHandler } from "./base-client-handler.js";
 import type { ClientConfig, ClientType, ServerEntry } from "./types.js";
-import { resolveConfigPath } from "../utils/paths.js";
 
 /**
  * VS Code stores MCP servers under the "mcp" → "servers" key in settings.json,
@@ -23,7 +23,7 @@ export class VSCodeHandler extends BaseClientHandler {
 
   protected fromClientConfig(
     raw: Record<string, unknown>,
-    config: ClientConfig
+    config: ClientConfig,
   ): Record<string, unknown> {
     const existingMcp = (raw.mcp ?? {}) as Record<string, unknown>;
     return {
