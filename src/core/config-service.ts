@@ -22,6 +22,8 @@ export interface ConfigData {
   preferredRegistry?: "npm" | "smithery";
   /** Idle minutes before vault re-prompts for password (default 30) */
   vaultTimeout?: number;
+  /** Installed plugin package names (e.g. ["mcpman-plugin-ollama"]) */
+  plugins?: string[];
 }
 
 /** Valid config keys for type-safe lookups. */
@@ -30,6 +32,7 @@ const VALID_KEYS: ReadonlySet<keyof ConfigData> = new Set([
   "updateCheckInterval",
   "preferredRegistry",
   "vaultTimeout",
+  "plugins",
 ]);
 
 // ── File I/O ───────────────────────────────────────────────────────────────
@@ -70,10 +73,7 @@ export function writeConfig(data: ConfigData, configPath = getConfigPath()): voi
  * Get a single config value by key.
  * Returns undefined if key is not set.
  */
-export function getConfigValue(
-  key: string,
-  configPath = getConfigPath()
-): unknown {
+export function getConfigValue(key: string, configPath = getConfigPath()): unknown {
   const data = readConfig(configPath);
   if (!VALID_KEYS.has(key as keyof ConfigData)) return undefined;
   return data[key as keyof ConfigData];
@@ -83,11 +83,7 @@ export function getConfigValue(
  * Set a single config value by key.
  * Persists full config back to disk after update.
  */
-export function setConfigValue(
-  key: string,
-  value: unknown,
-  configPath = getConfigPath()
-): void {
+export function setConfigValue(key: string, value: unknown, configPath = getConfigPath()): void {
   const data = readConfig(configPath);
   if (!VALID_KEYS.has(key as keyof ConfigData)) {
     throw new Error(`Unknown config key: "${key}". Valid keys: ${[...VALID_KEYS].join(", ")}`);
@@ -100,10 +96,7 @@ export function setConfigValue(
  * Delete a single config key.
  * No-op if key not present.
  */
-export function deleteConfigValue(
-  key: string,
-  configPath = getConfigPath()
-): void {
+export function deleteConfigValue(key: string, configPath = getConfigPath()): void {
   const data = readConfig(configPath);
   if (key in data) {
     delete (data as Record<string, unknown>)[key];

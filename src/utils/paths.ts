@@ -16,6 +16,11 @@ export function getConfigPath(): string {
   return path.join(getMcpmanDir(), "config.json");
 }
 
+/** Returns mcpman plugins dir: ~/.mcpman/plugins */
+export function getPluginDir(): string {
+  return path.join(getMcpmanDir(), "plugins");
+}
+
 /** Returns platform app data dir: ~/Library/Application Support (mac), ~/.config (linux), %APPDATA% (win) */
 export function getAppDataDir(): string {
   const home = getHomedir();
@@ -39,14 +44,7 @@ export function resolveConfigPath(client: ClientType): string {
       return path.join(appData, "Claude", "claude_desktop_config.json");
 
     case "cursor":
-      return path.join(
-        appData,
-        "Cursor",
-        "User",
-        "globalStorage",
-        "cursor.mcp",
-        "mcp.json"
-      );
+      return path.join(appData, "Cursor", "User", "globalStorage", "cursor.mcp", "mcp.json");
 
     case "windsurf":
       return path.join(
@@ -55,7 +53,7 @@ export function resolveConfigPath(client: ClientType): string {
         "User",
         "globalStorage",
         "windsurf.mcpConfigJson",
-        "mcp.json"
+        "mcp.json",
       );
 
     case "vscode":

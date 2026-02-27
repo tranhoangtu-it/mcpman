@@ -2,10 +2,13 @@ import { defineCommand, runMain } from "citty";
 import audit from "./commands/audit.js";
 import config from "./commands/config.js";
 import doctor from "./commands/doctor.js";
+import exportCmd from "./commands/export-command.js";
+import importCmd from "./commands/import-command.js";
 import info from "./commands/info.js";
 import init from "./commands/init.js";
 import install from "./commands/install.js";
 import list from "./commands/list.js";
+import plugin from "./commands/plugin.js";
 import remove from "./commands/remove.js";
 import run from "./commands/run.js";
 import search from "./commands/search.js";
@@ -39,6 +42,9 @@ const main = defineCommand({
     search,
     info,
     run,
+    plugin,
+    export: exportCmd,
+    import: importCmd,
   },
 });
 

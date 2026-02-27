@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
-import pc from "picocolors";
 import { createSpinner } from "nanospinner";
-import { searchNpm, searchSmithery } from "../core/registry-search.js";
+import pc from "picocolors";
+import { searchNpm, searchPlugins, searchSmithery } from "../core/registry-search.js";
 import type { NpmSearchResult, SmitherySearchResult } from "../core/registry-search.js";
 
 // Truncate string to max length, appending ellipsis if needed
@@ -42,7 +42,11 @@ function printNpmResults(results: NpmSearchResult[], query: string): void {
 
   const header = `  ${pad("NAME", nameWidth)}  ${pad("VERSION", verWidth)}  ${pad("DOWNLOADS", dlWidth)}  DESCRIPTION`;
   console.log(pc.dim(header));
-  console.log(pc.dim(`  ${"-".repeat(nameWidth)}  ${"-".repeat(verWidth)}  ${"-".repeat(dlWidth)}  ${"-".repeat(descMax)}`));
+  console.log(
+    pc.dim(
+      `  ${"-".repeat(nameWidth)}  ${"-".repeat(verWidth)}  ${"-".repeat(dlWidth)}  ${"-".repeat(descMax)}`,
+    ),
+  );
 
   for (const r of results) {
     const name = highlightMatch(pad(r.name, nameWidth), query);
@@ -61,7 +65,9 @@ function printSmitheryResults(results: SmitherySearchResult[], query: string): v
 
   const header = `  ${pad("NAME", nameWidth)}  ${pad("VERSION", verWidth)}  DESCRIPTION`;
   console.log(pc.dim(header));
-  console.log(pc.dim(`  ${"-".repeat(nameWidth)}  ${"-".repeat(verWidth)}  ${"-".repeat(descMax)}`));
+  console.log(
+    pc.dim(`  ${"-".repeat(nameWidth)}  ${"-".repeat(verWidth)}  ${"-".repeat(descMax)}`),
+  );
 
   for (const r of results) {
     const name = highlightMatch(pad(r.name, nameWidth), query);
@@ -92,6 +98,11 @@ export default defineCommand({
       description: "Maximum number of results (default: 20, max: 100)",
       default: "20",
     },
+    all: {
+      type: "boolean",
+      description: "Include plugin registries in search results",
+      default: false,
+    },
   },
   async run({ args }) {
     const query = args.query as string;
@@ -114,9 +125,17 @@ export default defineCommand({
         return;
       }
 
-      console.log(pc.bold(`\n  mcpman search — npm (${results.length} result${results.length !== 1 ? "s" : ""})\n`));
+      console.log(
+        pc.bold(
+          `\n  mcpman search — npm (${results.length} result${results.length !== 1 ? "s" : ""})\n`,
+        ),
+      );
       printNpmResults(results, query);
       console.log(pc.dim(`\n  Install with: mcpman install <name>\n`));
+
+      if (args.all) {
+        await printPluginResults(query, limit);
+      }
       return;
     }
 
@@ -129,8 +148,45 @@ export default defineCommand({
       return;
     }
 
-    console.log(pc.bold(`\n  mcpman search — Smithery (${results.length} result${results.length !== 1 ? "s" : ""})\n`));
+    console.log(
+      pc.bold(
+        `\n  mcpman search — Smithery (${results.length} result${results.length !== 1 ? "s" : ""})\n`,
+      ),
+    );
     printSmitheryResults(results, query);
     console.log(pc.dim(`\n  Install with: mcpman install <name>\n`));
+
+    // Plugin search (append if --all flag)
+    if (args.all) {
+      await printPluginResults(query, limit);
+    }
   },
 });
+
+// Print plugin search results
+async function printPluginResults(query: string, limit: number): Promise<void> {
+  const pluginResults = await searchPlugins(query, limit);
+  if (pluginResults.length === 0) return;
+
+  console.log(
+    pc.bold(
+      `\n  Plugins (${pluginResults.length} result${pluginResults.length !== 1 ? "s" : ""})\n`,
+    ),
+  );
+  const nameWidth = Math.max(4, ...pluginResults.map((r) => r.name.length), 20);
+  const srcWidth = Math.max(6, ...pluginResults.map((r) => r.source.length));
+  const descMax = 50;
+
+  const header = `  ${pad("NAME", nameWidth)}  ${pad("SOURCE", srcWidth)}  DESCRIPTION`;
+  console.log(pc.dim(header));
+  console.log(
+    pc.dim(`  ${"-".repeat(nameWidth)}  ${"-".repeat(srcWidth)}  ${"-".repeat(descMax)}`),
+  );
+
+  for (const r of pluginResults) {
+    const name = highlightMatch(pad(r.name, nameWidth), query);
+    const src = pad(r.source, srcWidth);
+    const desc = truncate(r.description || pc.dim("(no description)"), descMax);
+    console.log(`  ${name}  ${pc.dim(src)}  ${desc}`);
+  }
+}

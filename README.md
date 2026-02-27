@@ -39,6 +39,8 @@ mcpman install @modelcontextprotocol/server-filesystem
 - **Config sync** — keep server configs consistent across all your AI clients; `--remove` cleans extras
 - **Security audit** — scan servers for vulnerabilities with trust scoring; `--fix` auto-updates vulnerable packages
 - **Auto-update** — get notified when server updates are available
+- **Plugin system** — extend mcpman with npm-based plugins for custom registries (e.g. Ollama, HuggingFace)
+- **Export/Import** — portable JSON bundles for full config migration across machines
 - **Interactive prompts** — guided installation with env var configuration
 - **No extra daemon** — pure CLI, works anywhere Node ≥ 20 runs
 
@@ -153,6 +155,86 @@ mcpman update my-server  # update specific server
 mcpman update --check    # check only, don't apply
 ```
 
+### `config <set|get|list|reset>`
+
+Manage persistent CLI configuration at `~/.mcpman/config.json`.
+
+```sh
+mcpman config set defaultClient cursor
+mcpman config get defaultClient
+mcpman config list
+mcpman config reset
+```
+
+Keys: `defaultClient`, `updateCheckInterval`, `preferredRegistry`, `vaultTimeout`, `plugins`.
+
+### `search <query>`
+
+Search for MCP servers on npm or Smithery registry.
+
+```sh
+mcpman search filesystem
+mcpman search brave --registry smithery
+mcpman search tools --all        # include plugin registries
+mcpman search tools --limit 10
+```
+
+**Options:**
+- `--registry <npm|smithery>` — registry to search (default: npm)
+- `--limit <n>` — max results (default: 20, max: 100)
+- `--all` — include plugin registries in results
+
+### `info <server>`
+
+Show detailed information about an MCP server package.
+
+```sh
+mcpman info @modelcontextprotocol/server-filesystem
+mcpman info my-server --json
+```
+
+### `run <server>`
+
+Launch an MCP server with vault secrets auto-injected into the process environment.
+
+```sh
+mcpman run my-server
+mcpman run my-server --env API_KEY=sk-...
+```
+
+### `plugin <add|remove|list>`
+
+Manage mcpman plugins for custom registries.
+
+```sh
+mcpman plugin add mcpman-plugin-ollama    # install plugin
+mcpman plugin remove mcpman-plugin-ollama # uninstall plugin
+mcpman plugin list                        # show installed plugins
+```
+
+Plugins are npm packages that export a `McpmanPlugin` interface with `name`, `prefix`, and `resolve()`. Once installed, their prefix (e.g. `ollama:`) works with `mcpman install ollama:my-model`.
+
+### `export [output-file]`
+
+Export mcpman config, lockfile, vault, and plugins to a portable JSON file.
+
+```sh
+mcpman export                    # default: mcpman-export.json
+mcpman export backup.json
+mcpman export --no-vault         # exclude encrypted vault
+mcpman export --no-plugins       # exclude plugin list
+```
+
+### `import <file>`
+
+Restore mcpman config, lockfile, vault, and plugins from an export bundle.
+
+```sh
+mcpman import mcpman-export.json
+mcpman import backup.json --yes       # skip confirmation
+mcpman import backup.json --dry-run   # preview without applying
+```
+
 ---
 
 ## Comparison
@@ -168,6 +250,8 @@ mcpman update --check    # check only, don't apply
 | CI/CD | GitHub Actions | None | None |
 | Auto-update | Version check + notify | None | None |
 | Registry sources | npm + Smithery + GitHub | Smithery only | npm only |
+| Plugin system | npm-based custom registries | None | None |
+| Export/Import | Full config portability | None | None |
 | Interactive setup | Yes | Partial | No |
 | Project-scoped | Yes (`init`) | No | No |
 
