@@ -16,8 +16,17 @@ export default defineCommand({
     name: "init",
     description: "Initialize mcpman.lock in the current project",
   },
-  args: {},
-  async run() {
+  args: {
+    yes: {
+      type: "boolean",
+      alias: "y",
+      description: "Auto-import all servers without prompting",
+      default: false,
+    },
+  },
+  async run({ args }) {
+    const nonInteractive = args.yes || !process.stdout.isTTY;
+
     p.intro("mcpman init");
 
     const targetPath = path.join(process.cwd(), LOCKFILE_NAME);
@@ -25,11 +34,15 @@ export default defineCommand({
     // Check if lockfile already exists
     const existing = findLockfile();
     if (existing) {
-      p.log.warn(`Lockfile already exists: ${existing}`);
-      const overwrite = await p.confirm({ message: "Overwrite?" });
-      if (p.isCancel(overwrite) || !overwrite) {
-        p.outro("Cancelled.");
-        return;
+      if (nonInteractive) {
+        p.log.warn(`Lockfile already exists: ${existing} — overwriting (non-interactive).`);
+      } else {
+        p.log.warn(`Lockfile already exists: ${existing}`);
+        const overwrite = await p.confirm({ message: "Overwrite?" });
+        if (p.isCancel(overwrite) || !overwrite) {
+          p.outro("Cancelled.");
+          return;
+        }
       }
     }
 
@@ -68,24 +81,33 @@ export default defineCommand({
       return;
     }
 
-    // Prompt which clients to import from
-    const options = clientServers.map((cs) => ({
-      value: cs.client.type,
-      label: `${cs.client.displayName} (${Object.keys(cs.servers).length} servers)`,
-    }));
+    let selected: string[];
 
-    const toImport = await p.multiselect<typeof options, string>({
-      message: "Import existing servers into lockfile?",
-      options,
-      required: false,
-    });
+    if (nonInteractive) {
+      // Auto-select all clients in non-interactive mode
+      selected = clientServers.map((cs) => cs.client.type);
+      p.log.info(`Non-interactive mode: importing all ${clientServers.length} client(s).`);
+    } else {
+      // Prompt which clients to import from
+      const options = clientServers.map((cs) => ({
+        value: cs.client.type,
+        label: `${cs.client.displayName} (${Object.keys(cs.servers).length} servers)`,
+      }));
 
-    if (p.isCancel(toImport)) {
-      p.outro(`Created empty ${LOCKFILE_NAME}`);
-      return;
+      const toImport = await p.multiselect<typeof options, string>({
+        message: "Import existing servers into lockfile?",
+        options,
+        required: false,
+      });
+
+      if (p.isCancel(toImport)) {
+        p.outro(`Created empty ${LOCKFILE_NAME}`);
+        return;
+      }
+
+      selected = toImport as string[];
     }
 
-    const selected = toImport as string[];
     let importCount = 0;
 
     for (const cs of clientServers) {

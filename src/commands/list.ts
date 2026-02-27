@@ -35,11 +35,11 @@ export default defineCommand({
       return;
     }
 
-    // Run health probes in parallel (timeout 3s each)
+    // Run health probes in parallel (timeout 5s each — npx cold-starts can be slow)
     const withStatus = await Promise.all(
       servers.map(async (s) => ({
         ...s,
-        status: await quickHealthProbe(s.config, 3000),
+        status: await quickHealthProbe(s.config, 5000),
       }))
     );
 
