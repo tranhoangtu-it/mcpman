@@ -1,7 +1,9 @@
 # mcpman
 
-![npm version](https://img.shields.io/npm/v/mcpman)
-![license](https://img.shields.io/npm/l/mcpman)
+[![npm version](https://img.shields.io/npm/v/mcpman)](https://www.npmjs.com/package/mcpman)
+[![npm downloads](https://img.shields.io/npm/dm/mcpman)](https://www.npmjs.com/package/mcpman)
+[![GitHub stars](https://img.shields.io/github/stars/tranhoangtu-it/mcpman)](https://github.com/tranhoangtu-it/mcpman)
+[![license](https://img.shields.io/npm/l/mcpman)](https://github.com/tranhoangtu-it/mcpman/blob/main/LICENSE)
 ![node](https://img.shields.io/node/v/mcpman)
 
 **The package manager for MCP servers.**
