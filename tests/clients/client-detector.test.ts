@@ -22,27 +22,19 @@ function makeHandler(type: string, displayName: string, configPath: string) {
 }
 
 vi.mock("../../src/clients/claude-desktop.js", () => ({
-  ClaudeDesktopHandler: vi.fn().mockImplementation(() =>
-    makeHandler("claude-desktop", "Claude Desktop", "/fake/claude/config.json")
-  ),
+  ClaudeDesktopHandler: class { constructor() { return makeHandler("claude-desktop", "Claude Desktop", "/fake/claude/config.json"); } },
 }));
 
 vi.mock("../../src/clients/cursor.js", () => ({
-  CursorHandler: vi.fn().mockImplementation(() =>
-    makeHandler("cursor", "Cursor", "/fake/cursor/mcp.json")
-  ),
+  CursorHandler: class { constructor() { return makeHandler("cursor", "Cursor", "/fake/cursor/mcp.json"); } },
 }));
 
 vi.mock("../../src/clients/vscode.js", () => ({
-  VSCodeHandler: vi.fn().mockImplementation(() =>
-    makeHandler("vscode", "VS Code", "/fake/vscode/settings.json")
-  ),
+  VSCodeHandler: class { constructor() { return makeHandler("vscode", "VS Code", "/fake/vscode/settings.json"); } },
 }));
 
 vi.mock("../../src/clients/windsurf.js", () => ({
-  WindsurfHandler: vi.fn().mockImplementation(() =>
-    makeHandler("windsurf", "Windsurf", "/fake/windsurf/mcp.json")
-  ),
+  WindsurfHandler: class { constructor() { return makeHandler("windsurf", "Windsurf", "/fake/windsurf/mcp.json"); } },
 }));
 
 import { ClaudeDesktopHandler } from "../../src/clients/claude-desktop.js";
@@ -79,25 +71,21 @@ describe("client-detector", () => {
     it("returns handler with type claude-desktop", () => {
       const handler = getClient("claude-desktop");
       expect(handler.type).toBe("claude-desktop");
-      expect(ClaudeDesktopHandler).toHaveBeenCalled();
     });
 
     it("returns handler with type cursor", () => {
       const handler = getClient("cursor");
       expect(handler.type).toBe("cursor");
-      expect(CursorHandler).toHaveBeenCalled();
     });
 
     it("returns handler with type vscode", () => {
       const handler = getClient("vscode");
       expect(handler.type).toBe("vscode");
-      expect(VSCodeHandler).toHaveBeenCalled();
     });
 
     it("returns handler with type windsurf", () => {
       const handler = getClient("windsurf");
       expect(handler.type).toBe("windsurf");
-      expect(WindsurfHandler).toHaveBeenCalled();
     });
 
     it("handler exposes getConfigPath()", () => {
