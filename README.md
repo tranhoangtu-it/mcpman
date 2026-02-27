@@ -8,6 +8,10 @@
 
 Install, manage, and inspect Model Context Protocol servers across all your AI clients — Claude Desktop, Cursor, VS Code, and Windsurf — from a single CLI.
 
+<p align="center">
+  <img src="./demo.gif" alt="mcpman demo" width="700">
+</p>
+
 ---
 
 ## Quick Start
