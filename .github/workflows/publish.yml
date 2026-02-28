@@ -19,6 +19,8 @@ jobs:
           key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
           restore-keys: ${{ runner.os }}-node-22-
       - run: npm ci
+      - run: npm run lint
+      - run: npm run test:run
       - run: npm run build
       - run: npm publish
         env:

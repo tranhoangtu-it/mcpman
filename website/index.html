@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mcpman — The package manager for MCP servers</title>
+  <meta name="description" content="Install, manage, and inspect Model Context Protocol servers across Claude Desktop, Cursor, VS Code, and Windsurf — from a single CLI." />
+  <meta property="og:title" content="mcpman — The package manager for MCP servers" />
+  <meta property="og:description" content="38 commands. 4 AI clients. One CLI." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">mcpman</a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#commands">Commands</a>
+        <a href="#compare">Compare</a>
+        <a class="btn btn-ghost" href="https://github.com/tranhoangtu-it/mcpman" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-inner">
+      <div class="badge">v1.0.0 · MIT License · Node &ge; 20</div>
+      <h1 class="hero-title">mcpman</h1>
+      <p class="hero-tagline">The package manager for MCP servers.</p>
+      <p class="hero-desc">
+        Install, manage, and inspect Model Context Protocol servers across all your AI clients —
+        Claude Desktop, Cursor, VS Code, and Windsurf — from a single CLI.
+      </p>
+
+      <div class="install-block">
+        <div class="install-label">Try it now</div>
+        <div class="install-cmd">
+          <span class="prompt">$</span>
+          <span class="cmd-text">npx mcpman install @modelcontextprotocol/server-filesystem</span>
+          <button class="copy-btn" onclick="copyInstall(this)" title="Copy to clipboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="hero-cta">
+        <a href="#quickstart" class="btn btn-primary">Get Started</a>
+        <a href="https://github.com/tranhoangtu-it/mcpman" target="_blank" rel="noopener" class="btn btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+          GitHub
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num">38</span>
+          <span class="stat-label">Commands</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-num">4</span>
+          <span class="stat-label">AI Clients</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-num">457+</span>
+          <span class="stat-label">Tests</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-num">AES-256</span>
+          <span class="stat-label">Encryption</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything you need to manage MCP servers</h2>
+        <p>A complete toolchain for the MCP ecosystem — install, secure, sync, audit, and automate.</p>
+      </div>
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="feature-icon">🔌</div>
+          <h3>Universal Client Support</h3>
+          <p>Manage servers for Claude Desktop, Cursor, VS Code, and Windsurf from one unified tool. No context switching.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <h3>Registry-Aware</h3>
+          <p>Resolves packages from npm, Smithery, GitHub URLs, or custom registries. Lockfile tracks everything reproducibly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h3>Encrypted Vault</h3>
+          <p>Store API keys and tokens in an AES-256-CBC encrypted vault. Auto-loaded during install — never in plaintext JSON.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Config Sync</h3>
+          <p>Keep server configs consistent across all AI clients. Diff before syncing. Use <code>--remove</code> to clean extras.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Security Audit</h3>
+          <p>Scan for vulnerabilities via OSV API. Trust scoring 0–100. <code>--fix</code> auto-updates vulnerable packages.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🧩</div>
+          <h3>Plugin System</h3>
+          <p>Extend mcpman with npm-based plugins. Add custom registries like Ollama or HuggingFace with a prefix-based resolver.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🏗️</div>
+          <h3>Server Scaffolding</h3>
+          <p>Scaffold new MCP servers with <code>mcpman create</code>. Node.js and Python templates with a working <code>hello</code> tool.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🐚</div>
+          <h3>Shell Completions</h3>
+          <p>Tab-complete commands and server names in bash, zsh, and fish. Server names resolved dynamically from lockfile.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">↩️</div>
+          <h3>Auto-Rollback</h3>
+          <p>Automatic snapshots before every lockfile write. Restore any of the last 5 states with <code>mcpman rollback</code>.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <section class="section section-alt" id="quickstart">
+    <div class="container">
+      <div class="section-header">
+        <h2>Quick Start</h2>
+        <p>Up and running in under a minute.</p>
+      </div>
+      <div class="quickstart-layout">
+        <div class="quickstart-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>Install globally (optional)</h4>
+              <p>Or skip this and use <code>npx</code> for any command.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>Install a server</h4>
+              <p>mcpman auto-detects your installed AI clients and registers the server with all of them.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>Run health check</h4>
+              <p>Verifies runtimes, env vars, and server connectivity.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <h4>Search for more</h4>
+              <p>Find servers on npm or Smithery registry.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">shell</span>
+            <button class="copy-btn copy-btn-sm" onclick="copyCode(this)" title="Copy">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+          </div>
+          <pre class="code-pre"><code><span class="c"># Install globally</span>
+<span class="p">$</span> npm install -g mcpman
+
+<span class="c"># Or use directly without installing</span>
+<span class="p">$</span> npx mcpman install @modelcontextprotocol/server-filesystem
+
+<span class="c"># Health check all servers</span>
+<span class="p">$</span> mcpman doctor
+
+<span class="c"># Search for servers</span>
+<span class="p">$</span> mcpman search filesystem
+
+<span class="c"># List installed servers</span>
+<span class="p">$</span> mcpman list
+
+<span class="c"># Sync across all clients</span>
+<span class="p">$</span> mcpman sync</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMANDS -->
+  <section class="section" id="commands">
+    <div class="container">
+      <div class="section-header">
+        <h2>38 Commands. One Tool.</h2>
+        <p>A complete CLI for every stage of the MCP server lifecycle.</p>
+      </div>
+      <div class="commands-grid">
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">⚙️</span>
+            <span>Core</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>install</code> <span>Install &amp; register a server</span></li>
+            <li><code>list</code> <span>List installed servers</span></li>
+            <li><code>remove</code> <span>Uninstall a server</span></li>
+            <li><code>update</code> <span>Update installed servers</span></li>
+            <li><code>upgrade</code> <span>Self-upgrade mcpman</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">🩺</span>
+            <span>Health</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>doctor</code> <span>Run diagnostics</span></li>
+            <li><code>test</code> <span>JSON-RPC validation</span></li>
+            <li><code>validate</code> <span>Schema checks</span></li>
+            <li><code>status</code> <span>Live process status</span></li>
+            <li><code>bench</code> <span>Latency benchmarks</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">🔧</span>
+            <span>Config</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>init</code> <span>Scaffold lockfile</span></li>
+            <li><code>config</code> <span>Global config CRUD</span></li>
+            <li><code>sync</code> <span>Cross-client sync</span></li>
+            <li><code>diff</code> <span>Visual client diff</span></li>
+            <li><code>env</code> <span>Per-server env vars</span></li>
+            <li><code>secrets</code> <span>Encrypted vault</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">🔍</span>
+            <span>Discovery</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>search</code> <span>npm + Smithery search</span></li>
+            <li><code>info</code> <span>Package details</span></li>
+            <li><code>why</code> <span>Server provenance</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">🏗️</span>
+            <span>Authoring</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>create</code> <span>Scaffold new server</span></li>
+            <li><code>link</code> <span>Link local server</span></li>
+            <li><code>watch</code> <span>Auto-restart on change</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">🗂️</span>
+            <span>Organization</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>profiles</code> <span>Named config snapshots</span></li>
+            <li><code>group</code> <span>Batch server tags</span></li>
+            <li><code>pin</code> <span>Version pinning</span></li>
+            <li><code>rollback</code> <span>Restore snapshots</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">🗃️</span>
+            <span>Registry</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>registry</code> <span>Custom registry CRUD</span></li>
+            <li><code>plugin</code> <span>npm-based plugins</span></li>
+            <li><code>completions</code> <span>Shell tab-complete</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">📦</span>
+            <span>Migration</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>export</code> <span>Portable JSON bundle</span></li>
+            <li><code>import</code> <span>Restore from bundle</span></li>
+            <li><code>template</code> <span>Sharable server presets</span></li>
+          </ul>
+        </div>
+
+        <div class="cmd-group">
+          <div class="cmd-group-header">
+            <span class="cmd-group-icon">⚡</span>
+            <span>Ops</span>
+          </div>
+          <ul class="cmd-list">
+            <li><code>run</code> <span>Launch with vault secrets</span></li>
+            <li><code>logs</code> <span>Real-time log streaming</span></li>
+            <li><code>notify</code> <span>Webhook + shell hooks</span></li>
+            <li><code>replay</code> <span>Command history replay</span></li>
+            <li><code>alias</code> <span>Command shorthands</span></li>
+            <li><code>audit</code> <span>Security vulnerability scan</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARISON -->
+  <section class="section section-alt" id="compare">
+    <div class="container">
+      <div class="section-header">
+        <h2>How mcpman Compares</h2>
+        <p>Built for power users who need more than a basic installer.</p>
+      </div>
+      <div class="table-wrapper">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="highlight-col">mcpman</th>
+              <th>Smithery CLI</th>
+              <th>mcpm.sh</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Multi-client support</td>
+              <td class="highlight-col"><span class="check">All 4 clients</span></td>
+              <td><span class="partial">Claude only</span></td>
+              <td><span class="partial">Limited</span></td>
+            </tr>
+            <tr>
+              <td>Lockfile</td>
+              <td class="highlight-col"><span class="check">mcpman.lock</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Health checks</td>
+              <td class="highlight-col"><span class="check">Runtime + env + process</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Encrypted secrets</td>
+              <td class="highlight-col"><span class="check">AES-256 vault</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Config sync</td>
+              <td class="highlight-col"><span class="check">Cross-client + --remove</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Security audit</td>
+              <td class="highlight-col"><span class="check">Trust scoring + auto-fix</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Registry sources</td>
+              <td class="highlight-col"><span class="check">npm + Smithery + GitHub</span></td>
+              <td><span class="partial">Smithery only</span></td>
+              <td><span class="partial">npm only</span></td>
+            </tr>
+            <tr>
+              <td>Plugin system</td>
+              <td class="highlight-col"><span class="check">npm-based</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Export / Import</td>
+              <td class="highlight-col"><span class="check">Full config portability</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Server scaffolding</td>
+              <td class="highlight-col"><span class="check">Node + Python templates</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Shell completions</td>
+              <td class="highlight-col"><span class="check">bash + zsh + fish</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>Auto-rollback</td>
+              <td class="highlight-col"><span class="check">Auto-snapshot + restore</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+            <tr>
+              <td>CI/CD integration</td>
+              <td class="highlight-col"><span class="check">GitHub Actions</span></td>
+              <td><span class="cross">None</span></td>
+              <td><span class="cross">None</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL BANNER -->
+  <section class="section install-banner">
+    <div class="container">
+      <h2>Ready to manage your MCP servers?</h2>
+      <p>No daemon required. Pure CLI. Works anywhere Node &ge; 20 runs.</p>
+      <div class="banner-cmds">
+        <div class="banner-cmd">
+          <span class="banner-cmd-label">Global install</span>
+          <div class="install-cmd">
+            <span class="prompt">$</span>
+            <span class="cmd-text">npm install -g mcpman</span>
+            <button class="copy-btn" onclick="copyInstall(this)" title="Copy">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="banner-cmd-or">or</div>
+        <div class="banner-cmd">
+          <span class="banner-cmd-label">No install</span>
+          <div class="install-cmd">
+            <span class="prompt">$</span>
+            <span class="cmd-text">npx mcpman install &lt;server&gt;</span>
+            <button class="copy-btn" onclick="copyInstall(this)" title="Copy">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="banner-cta">
+        <a href="https://github.com/tranhoangtu-it/mcpman" target="_blank" rel="noopener" class="btn btn-primary">View on GitHub</a>
+        <a href="https://www.npmjs.com/package/mcpman" target="_blank" rel="noopener" class="btn btn-outline">npm Package</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="footer-logo">mcpman</span>
+          <span class="footer-tagline">The package manager for MCP servers.</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://www.npmjs.com/package/mcpman" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M0 7.334v8h6.545v1.332H12v-1.332h12v-8H0zm6.545 6.664H5.213V8.667H3.88v5.331H1.334V8.667h5.211zm4.122 0V8.667h1.333v5.331h-1.333zm1.334-2.662v-1.334H12v1.334h-.545zm1.877 2.662V8.667h4.667v5.331h-4.667z"/></svg>
+            npm
+          </a>
+          <a href="https://github.com/tranhoangtu-it/mcpman" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+            GitHub
+          </a>
+          <a href="https://github.com/tranhoangtu-it/mcpman/blob/main/LICENSE" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            MIT License
+          </a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Built with Node.js and TypeScript &nbsp;&bull;&nbsp; <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Model Context Protocol</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+      anchor.addEventListener('click', function(e) {
+        var target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Copy install command
+    function copyInstall(btn) {
+      var cmdText = btn.closest('.install-cmd').querySelector('.cmd-text');
+      var text = cmdText ? cmdText.textContent.trim() : '';
+      copyToClipboard(text, btn);
+    }
+
+    // Copy code block
+    function copyCode(btn) {
+      var pre = btn.closest('.code-block').querySelector('.code-pre');
+      var text = pre ? pre.textContent.trim() : '';
+      // Remove prompt chars from lines
+      text = text.split('\n').map(function(line) {
+        return line.replace(/^\$ /, '');
+      }).join('\n');
+      copyToClipboard(text, btn);
+    }
+
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(function() {
+        var original = btn.innerHTML;
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        btn.style.color = '#00d4ff';
+        setTimeout(function() {
+          btn.innerHTML = original;
+          btn.style.color = '';
+        }, 1800);
+      }).catch(function() {
+        // fallback: select text
+      });
+    }
+
+    // Sticky nav shadow on scroll
+    window.addEventListener('scroll', function() {
+      var nav = document.querySelector('.nav');
+      if (window.scrollY > 10) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+  </script>
+</body>
+</html>

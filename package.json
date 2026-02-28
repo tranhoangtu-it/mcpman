@@ -1,13 +1,13 @@
 {
   "name": "mcpman",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "The package manager for MCP servers",
   "type": "module",
   "bin": {
     "mcpman": "./dist/index.cjs"
   },
   "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
@@ -17,6 +17,7 @@
     "lint:fix": "biome check --write .",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "prepublishOnly": "npm run build"
   },
   "engines": {

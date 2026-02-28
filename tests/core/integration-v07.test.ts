@@ -33,8 +33,8 @@ afterEach(() => {
 // ── Version ────────────────────────────────────────────────────────────────────
 
 describe("version", () => {
-  it("APP_VERSION is 0.9.0", () => {
-    expect(APP_VERSION).toBe("0.9.0");
+  it("APP_VERSION is 1.0.0", () => {
+    expect(APP_VERSION).toBe("1.0.0");
   });
 });
 
