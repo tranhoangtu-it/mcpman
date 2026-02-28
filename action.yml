@@ -1,0 +1,36 @@
+name: 'mcpman - MCP Server Manager'
+description: 'Install, manage, and inspect MCP servers in your CI/CD pipeline'
+author: 'tranhoangtu-it'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  command:
+    description: 'mcpman command to run (e.g., install, doctor, audit, sync)'
+    required: true
+  args:
+    description: 'Additional arguments for the command'
+    required: false
+    default: ''
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '22'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install mcpman
+      shell: bash
+      run: npm install -g mcpman@latest
+
+    - name: Run mcpman
+      shell: bash
+      run: mcpman ${{ inputs.command }} ${{ inputs.args }}
