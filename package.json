@@ -1,6 +1,6 @@
 {
   "name": "mcpman",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "The package manager for MCP servers",
   "type": "module",
   "bin": {

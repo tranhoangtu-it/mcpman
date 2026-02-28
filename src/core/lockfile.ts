@@ -7,7 +7,7 @@ export const LOCKFILE_NAME = "mcpman.lock";
 
 export interface LockEntry {
   version: string;
-  source: "npm" | "smithery" | "github";
+  source: "npm" | "smithery" | "github" | "local";
   resolved: string;
   integrity: string;
   runtime: "node" | "python" | "docker";

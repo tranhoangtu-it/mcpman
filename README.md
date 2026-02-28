@@ -283,6 +283,83 @@ mcpman import backup.json --yes       # skip confirmation
 mcpman import backup.json --dry-run   # preview without applying
 ```
 
+### `create [name]`
+
+Scaffold a new MCP server project with working boilerplate.
+
+```sh
+mcpman create my-server              # interactive prompts
+mcpman create my-server --yes        # accept defaults
+mcpman create my-server --runtime python  # Python template
+```
+
+Generates `package.json` (with `mcp` field), `src/index.ts`, and `tsconfig.json` for Node; or `pyproject.toml` and `main.py` for Python. Both templates implement the MCP protocol with a sample `hello` tool ready to run.
+
+### `link [dir]`
+
+Register a local MCP server directory with AI clients — like `npm link` but for MCP.
+
+```sh
+mcpman link .                        # link current directory
+mcpman link ./path/to/server         # link specific directory
+mcpman link . --client cursor        # link to specific client only
+mcpman link . --name my-override     # override detected server name
+```
+
+Reads `package.json` or `pyproject.toml` to detect name, version, and entry point. Adds a lockfile entry with `source: "local"` and registers the absolute path in client configs. No file copying — edits are picked up immediately.
+
+### `watch <server>`
+
+Watch a local MCP server's source files and auto-restart on changes — like nodemon, built into mcpman.
+
+```sh
+mcpman watch my-server               # watch with defaults
+mcpman watch my-server --dir ./src   # override watch directory
+mcpman watch my-server --ext ts,js   # watch specific extensions
+mcpman watch my-server --delay 500   # set debounce delay (ms)
+mcpman watch my-server --clear       # clear terminal on restart
+```
+
+Uses Node.js built-in `fs.watch` (no chokidar). Debounces 300ms by default. Ignores `node_modules/`, `dist/`, `.git/`, `__pycache__/`. Vault secrets are injected same as `mcpman run`.
+
+### `registry <list|add|remove|set-default>`
+
+Manage custom registry URLs for MCP server resolution.
+
+```sh
+mcpman registry list                              # show all registries
+mcpman registry add corp https://mcp.corp.com/api # add custom registry
+mcpman registry remove corp                       # remove custom registry
+mcpman registry set-default smithery             # change default registry
+```
+
+Built-in registries (npm, smithery) are always present and cannot be removed. Custom registries are stored in `~/.mcpman/config.json`.
+
+### `completions <bash|zsh|fish|install>`
+
+Generate shell completion scripts for tab-completion of commands and server names.
+
+```sh
+mcpman completions bash              # output bash completion script
+mcpman completions zsh               # output zsh completion script
+mcpman completions fish              # output fish completion script
+mcpman completions install           # auto-detect shell and install
+source <(mcpman completions bash)    # enable completions in current session
+```
+
+Completes: subcommands, server names (from lockfile), client types (`--client`), and runtimes (`--runtime`). Server names are resolved dynamically at completion time so they stay fresh.
+
+### `why <server>`
+
+Show why a server is installed — source, clients, profiles, env vars.
+
+```sh
+mcpman why my-server                 # full provenance output
+mcpman why my-server --json          # JSON output for scripting
+```
+
+Displays: source (npm/smithery/github/local), resolved URL, version, installed timestamp, which clients have it registered, which named profiles include it, and required env var names. Detects orphaned servers (in client config but not in lockfile) and suggests `mcpman sync --remove`.
+
 ---
 
 ## Comparison
@@ -306,6 +383,12 @@ mcpman import backup.json --dry-run   # preview without applying
 | Self-upgrade | Built-in CLI updater | None | None |
 | Interactive setup | Yes | Partial | No |
 | Project-scoped | Yes (`init`) | No | No |
+| Server scaffolding | `create` (Node + Python) | None | None |
+| Local dev linking | `link` (like npm link) | None | None |
+| File watching | `watch` (auto-restart) | None | None |
+| Custom registries | `registry` CRUD | None | None |
+| Shell completions | bash + zsh + fish | None | None |
+| Provenance query | `why` (clients + profiles) | None | None |
 
 ---
 
