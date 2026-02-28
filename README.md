@@ -439,6 +439,83 @@ mcpman rollback 2                    # restore specific snapshot
 
 Snapshots are created automatically before every lockfile write. Keeps the last 5 snapshots in `~/.mcpman/rollback/`. After rollback, run `mcpman sync` to apply to all clients.
 
+### `validate [--client <name>]`
+
+Validate lockfile schema and client config JSON for correctness.
+
+```sh
+mcpman validate                      # validate lockfile + all clients
+mcpman validate --client cursor      # validate specific client only
+mcpman validate --json               # machine-readable output
+```
+
+Checks: required fields (name, version, source, command, args), valid JSON structure, mcpServers entries have command+args. Exits 1 if any errors found. Distinct from `doctor` (which checks runtime health).
+
+### `status [--server <name>]`
+
+Show live process status of all installed MCP servers.
+
+```sh
+mcpman status                        # check all servers
+mcpman status --server my-server     # check specific server
+mcpman status --json                 # JSON output
+```
+
+Probes each server with a JSON-RPC `initialize` call (3s timeout). Reports: alive/dead status, response time, and error details.
+
+### `replay [index]`
+
+Re-run previous CLI commands from history.
+
+```sh
+mcpman replay --list                 # show last 20 commands
+mcpman replay 0                     # re-run most recent command
+mcpman replay 5                     # re-run 5th command
+```
+
+Maintains a ring buffer of the last 50 commands at `~/.mcpman/history.json`. Each entry includes the command, arguments, and timestamp.
+
+### `alias <add|remove|list>`
+
+Create short aliases for frequently used commands.
+
+```sh
+mcpman alias add dev "group run dev-servers"
+mcpman alias add fs "install @modelcontextprotocol/server-filesystem"
+mcpman alias remove dev
+mcpman alias list
+```
+
+Aliases stored in `~/.mcpman/aliases.json`. Unlike groups (server batches), aliases are command-line shorthands.
+
+### `template <save|apply|list|delete>`
+
+Save and share install templates for team onboarding.
+
+```sh
+mcpman template save myteam          # snapshot current servers
+mcpman template save myteam -d "Team setup"
+mcpman template apply myteam         # print install commands
+mcpman template list                 # show all templates
+mcpman template delete myteam        # remove template
+```
+
+Templates stored in `~/.mcpman/templates/`. Unlike `export` (full migration bundle with vault+plugins), templates are lightweight server presets for sharing.
+
+### `notify <add|remove|list|test>`
+
+Configure webhook and shell hooks for server lifecycle events.
+
+```sh
+mcpman notify add --event install --webhook https://hooks.example.com/mcp
+mcpman notify add --event health-fail --shell "echo alert | mail admin"
+mcpman notify list                   # show all hooks
+mcpman notify remove 0              # remove hook by index
+mcpman notify test install           # fire test event
+```
+
+Events: `install`, `remove`, `update`, `health-fail`. Webhooks use native `fetch()`, shell hooks use `execSync`. Hooks stored in `~/.mcpman/notify.json`.
+
 ---
 
 ## Comparison
@@ -474,6 +551,12 @@ Snapshots are created automatically before every lockfile write. Keeps the last 
 | Server groups | Batch install/run tags | None | None |
 | Version pinning | `pin`/`unpin` CLI | None | None |
 | Rollback | Auto-snapshot + restore | None | None |
+| Config validation | Schema + JSON checks | None | None |
+| Live status | Process probe + response time | None | None |
+| Command replay | History ring buffer | None | None |
+| Command aliases | Shorthand definitions | None | None |
+| Install templates | Sharable server presets | None | None |
+| Event notifications | Webhook + shell hooks | None | None |
 
 ---
 

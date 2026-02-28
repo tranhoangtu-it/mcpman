@@ -112,7 +112,7 @@ describe("createExportBundle()", () => {
     writeLockfile({ lockfileVersion: 1, servers: { "test-server": { version: "1.0.0" } } } as any);
 
     const bundle = createExportBundle();
-    expect(bundle.mcpmanVersion).toBe("0.8.0");
+    expect(bundle.mcpmanVersion).toBe("0.9.0");
     expect(bundle.exportedAt).toBeTruthy();
     expect(bundle.config.defaultClient).toBe("cursor");
     expect(bundle.lockfile.servers["test-server"]).toBeDefined();

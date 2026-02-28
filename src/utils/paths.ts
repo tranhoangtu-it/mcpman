@@ -46,6 +46,26 @@ export function getRollbackDir(): string {
   return path.join(getMcpmanDir(), "rollback");
 }
 
+/** Returns history file path: ~/.mcpman/history.json */
+export function getHistoryFile(): string {
+  return path.join(getMcpmanDir(), "history.json");
+}
+
+/** Returns aliases file path: ~/.mcpman/aliases.json */
+export function getAliasesFile(): string {
+  return path.join(getMcpmanDir(), "aliases.json");
+}
+
+/** Returns templates dir: ~/.mcpman/templates */
+export function getTemplatesDir(): string {
+  return path.join(getMcpmanDir(), "templates");
+}
+
+/** Returns notify hooks file path: ~/.mcpman/notify.json */
+export function getNotifyFile(): string {
+  return path.join(getMcpmanDir(), "notify.json");
+}
+
 /** Returns platform app data dir: ~/Library/Application Support (mac), ~/.config (linux), %APPDATA% (win) */
 export function getAppDataDir(): string {
   const home = getHomedir();
