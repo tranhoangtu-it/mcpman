@@ -41,7 +41,7 @@ grep 'APP_VERSION' src/utils/constants.ts
 
 ## CI/CD Workflows
 
-Two GitHub Actions workflows in `.github/workflows/`:
+Three GitHub Actions workflows in `.github/workflows/`:
 
 ### `ci.yml` — Continuous Integration
 
@@ -72,6 +72,20 @@ Steps:
 ```
 
 Requires `NPM_TOKEN` secret in GitHub repository settings — use a granular access token with 2FA bypass enabled.
+
+### `pages.yml` — Website Deployment
+
+Triggers on push to `main` when files under `website/` change, or manually via `workflow_dispatch`.
+
+```
+Steps:
+  1. Checkout code
+  2. Configure GitHub Pages
+  3. Upload website/ directory as Pages artifact
+  4. Deploy to GitHub Pages
+```
+
+Website is served at https://mcpman.pages.dev/ (Cloudflare Pages domain). The `website/` directory contains `index.html` and `style.css` — static files only, no build step required.
 
 ## Release Process
 
@@ -150,3 +164,21 @@ Do not `npm unpublish` — it breaks users who have that version pinned.
 | `NPM_TOKEN` | Granular token for automated npm publish |
 
 No other secrets required. Tests use mock data and do not call live APIs.
+
+## Website Development
+
+```bash
+# Edit website files
+vi website/index.html
+vi website/style.css
+
+# Preview locally (any static server)
+npx serve website/
+
+# Deploy: just push to main — pages.yml triggers automatically
+git add website/
+git commit -m "docs: update website content"
+git push origin main
+```
+
+Website URL: https://mcpman.pages.dev/

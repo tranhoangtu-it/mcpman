@@ -190,5 +190,9 @@ npm run test:run -- --coverage
 
 - Binary: `./dist/index.cjs` (CJS — required for npm bin field)
 - Version synced in `package.json` AND `src/utils/constants.ts`
-- CI/CD: GitHub Actions — test on push, publish on git tag
+- CI/CD: 3 GitHub Actions workflows in `.github/workflows/`:
+  - `ci.yml` — lint + test on every push/PR (Node 20 + 22 matrix)
+  - `publish.yml` — npm publish triggered by `v*` git tag
+  - `pages.yml` — website deploy triggered by changes to `website/` on main
 - Self-update: `mcpman upgrade` fetches latest via npm
+- Website: https://mcpman.pages.dev/ — static HTML/CSS in `website/` dir, hosted on Cloudflare Pages

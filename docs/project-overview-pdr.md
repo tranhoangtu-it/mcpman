@@ -10,6 +10,8 @@
 
 **Key Differentiator:** Only tool combining multi-client support + lockfile + vault + security audit + plugin extensibility + config portability + developer tooling in a single CLI.
 
+**Links:** [Website](https://mcpman.pages.dev/) | [npm](https://www.npmjs.com/package/mcpman) | [GitHub](https://github.com/tranhoangtu-it/mcpman)
+
 ## Vision & Mission
 
 **Vision:** Enable developers to manage MCP ecosystems as easily as managing npm packages.

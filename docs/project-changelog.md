@@ -21,6 +21,7 @@ Stable release. 38 CLI commands, 457 tests (45 files), 92 source files. Semantic
 - **`alias` command** — define and manage server name aliases
 - **`template` command** — save/apply reusable config templates
 - **`notify` command** — manage update notification preferences
+- **Website** — https://mcpman.pages.dev/ deployed on Cloudflare Pages (`pages.yml` workflow)
 
 ### Technical Details
 
@@ -28,6 +29,7 @@ Stable release. 38 CLI commands, 457 tests (45 files), 92 source files. Semantic
 - **Test Coverage:** 457 tests across 45 test files
 - **Source Files:** 92 TypeScript files
 - **Node Requirement:** ≥20.0.0
+- **CI/CD Workflows:** `ci.yml`, `publish.yml`, `pages.yml`
 
 ### Migration from v0.9.0
 
@@ -178,3 +180,4 @@ No critical vulnerabilities reported across all releases. Vault uses AES-256-CBC
 
 **Report bugs:** https://github.com/tranhoangtu-it/mcpman/issues
 **npm:** https://www.npmjs.com/package/mcpman
+**Website:** https://mcpman.pages.dev/

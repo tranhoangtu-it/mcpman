@@ -10,6 +10,7 @@ mcpman is a universal package manager for Model Context Protocol (MCP) servers. 
 
 **Repository:** https://github.com/tranhoangtu-it/mcpman
 **npm:** https://www.npmjs.com/package/mcpman
+**Website:** https://mcpman.pages.dev/
 
 ## Directory Structure
 
@@ -162,6 +163,8 @@ npm run lint:fix   # biome format
 
 - Binary: `./dist/index.cjs` (npm bin field)
 - Version bumped in `package.json` AND `src/utils/constants.ts`
+- Website: `website/` directory deployed to Cloudflare Pages (https://mcpman.pages.dev/)
+- CI/CD: 3 GitHub Actions workflows — `ci.yml`, `publish.yml`, `pages.yml`
 
 ## Key Decisions
 

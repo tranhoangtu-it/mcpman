@@ -115,6 +115,7 @@
 - 92 source files (stable, no breaking changes)
 - Semantic versioning guarantee from this release forward
 - Production-grade stability
+- Website launched at https://mcpman.pages.dev/ (Cloudflare Pages)
 
 ---
 
@@ -133,7 +134,8 @@
 | **Advanced Mgmt** | Complete | 100% | bench, diff, group, pin, rollback |
 | **Automation** | Complete | 100% | validate, status, replay, alias |
 | **Testing** | Complete | 100% | 457 tests, 45 files |
-| **CI/CD** | Complete | 100% | GitHub Actions, npm publish |
+| **CI/CD** | Complete | 100% | GitHub Actions, npm publish, pages.yml |
+| **Website** | Complete | 100% | https://mcpman.pages.dev/ deployed |
 
 ---
 
