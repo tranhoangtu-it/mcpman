@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { ClientType } from "../clients/types.js";
+import { snapshotBeforeWrite } from "./rollback-service.js";
 
 export const LOCKFILE_NAME = "mcpman.lock";
 
@@ -77,8 +78,18 @@ export function writeLockfile(data: LockfileData, filePath?: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
+  const serialized = serialize(data);
+  // Snapshot current state before overwriting (ring buffer of 5)
+  if (fs.existsSync(target)) {
+    try {
+      const current = fs.readFileSync(target, "utf-8");
+      snapshotBeforeWrite(current);
+    } catch {
+      /* ignore snapshot errors — never block writes */
+    }
+  }
   const tmp = `${target}.tmp`;
-  fs.writeFileSync(tmp, serialize(data), "utf-8");
+  fs.writeFileSync(tmp, serialized, "utf-8");
   fs.renameSync(tmp, target);
 }
 

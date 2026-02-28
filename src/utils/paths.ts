@@ -26,6 +26,26 @@ export function getProfilesDir(): string {
   return path.join(getMcpmanDir(), "profiles");
 }
 
+/** Returns per-server env var store dir: ~/.mcpman/env */
+export function getEnvDir(): string {
+  return path.join(getMcpmanDir(), "env");
+}
+
+/** Returns groups file path: ~/.mcpman/groups.json */
+export function getGroupsFile(): string {
+  return path.join(getMcpmanDir(), "groups.json");
+}
+
+/** Returns pins file path: ~/.mcpman/pins.json */
+export function getPinsFile(): string {
+  return path.join(getMcpmanDir(), "pins.json");
+}
+
+/** Returns rollback snapshots dir: ~/.mcpman/rollback */
+export function getRollbackDir(): string {
+  return path.join(getMcpmanDir(), "rollback");
+}
+
 /** Returns platform app data dir: ~/Library/Application Support (mac), ~/.config (linux), %APPDATA% (win) */
 export function getAppDataDir(): string {
   const home = getHomedir();

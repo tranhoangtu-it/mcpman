@@ -57,9 +57,19 @@ afterEach(() => {
 // ── getCommandList ─────────────────────────────────────────────────────────────
 
 describe("getCommandList", () => {
-  it("returns all 26 subcommands", () => {
+  it("returns all 32 subcommands", () => {
     const cmds = getCommandList();
-    expect(cmds.length).toBe(26);
+    expect(cmds.length).toBe(32);
+  });
+
+  it("includes all v0.8 new commands", () => {
+    const cmds = getCommandList();
+    expect(cmds).toContain("env");
+    expect(cmds).toContain("bench");
+    expect(cmds).toContain("diff");
+    expect(cmds).toContain("group");
+    expect(cmds).toContain("pin");
+    expect(cmds).toContain("rollback");
   });
 
   it("includes all v0.7 new commands", () => {

@@ -36,6 +36,12 @@ export function getCommandList(): string[] {
     "registry",
     "completions",
     "why",
+    "env",
+    "bench",
+    "diff",
+    "group",
+    "pin",
+    "rollback",
   ];
 }
 

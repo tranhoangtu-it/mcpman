@@ -1,10 +1,14 @@
 import { defineCommand, runMain } from "citty";
 import audit from "./commands/audit.js";
+import bench from "./commands/bench.js";
 import completions from "./commands/completions.js";
 import config from "./commands/config.js";
 import create from "./commands/create.js";
+import diff from "./commands/diff.js";
 import doctor from "./commands/doctor.js";
+import envCmd from "./commands/env.js";
 import exportCmd from "./commands/export-command.js";
+import group from "./commands/group.js";
 import importCmd from "./commands/import-command.js";
 import info from "./commands/info.js";
 import init from "./commands/init.js";
@@ -12,10 +16,12 @@ import install from "./commands/install.js";
 import link from "./commands/link.js";
 import list from "./commands/list.js";
 import logs from "./commands/logs.js";
+import pin from "./commands/pin.js";
 import plugin from "./commands/plugin.js";
 import profiles from "./commands/profiles.js";
 import registry from "./commands/registry.js";
 import remove from "./commands/remove.js";
+import rollback from "./commands/rollback.js";
 import run from "./commands/run.js";
 import search from "./commands/search.js";
 import secrets from "./commands/secrets.js";
@@ -65,6 +71,12 @@ const main = defineCommand({
     registry,
     completions,
     why,
+    env: envCmd,
+    bench,
+    diff,
+    group,
+    pin,
+    rollback,
   },
 });
 

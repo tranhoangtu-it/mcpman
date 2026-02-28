@@ -1,4 +1,5 @@
 import type { LockEntry, LockfileData } from "./lockfile.js";
+import { isPinned } from "./pin-service.js";
 
 export interface UpdateInfo {
   server: string;
@@ -134,6 +135,8 @@ export async function checkAllVersions(lockfile: LockfileData): Promise<UpdateIn
   const executing = new Set<Promise<void>>();
 
   for (const [name, entry] of entries) {
+    // Skip pinned servers — user opted out of update notifications
+    if (isPinned(name)) continue;
     const p = checkVersion(name, entry).then((r) => {
       results.push(r);
       executing.delete(p);

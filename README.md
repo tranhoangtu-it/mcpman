@@ -360,6 +360,85 @@ mcpman why my-server --json          # JSON output for scripting
 
 Displays: source (npm/smithery/github/local), resolved URL, version, installed timestamp, which clients have it registered, which named profiles include it, and required env var names. Detects orphaned servers (in client config but not in lockfile) and suggests `mcpman sync --remove`.
 
+### `env <set|get|list|del|clear>`
+
+Manage per-server environment variables (non-sensitive defaults).
+
+```sh
+mcpman env set my-server API_URL=https://api.example.com
+mcpman env get my-server API_URL
+mcpman env list my-server
+mcpman env del my-server API_URL
+mcpman env clear my-server
+```
+
+Stored in `~/.mcpman/env/<server>.json`. For sensitive values, use `mcpman secrets` instead. At runtime, vault secrets take priority over env defaults.
+
+### `bench <server>`
+
+Benchmark MCP server latency with JSON-RPC initialize calls.
+
+```sh
+mcpman bench my-server               # 5 runs (default)
+mcpman bench my-server --runs 10     # custom run count
+mcpman bench my-server --json        # machine-readable output
+mcpman bench my-server --timeout 5000 # exit 1 if p95 > 5s
+```
+
+Reports min, max, avg, p50, p95 response times in milliseconds.
+
+### `diff <client-a> <client-b>`
+
+Show visual diff of MCP server configs between two AI clients.
+
+```sh
+mcpman diff claude-desktop cursor     # color-coded diff
+mcpman diff vscode windsurf --json    # JSON output
+```
+
+Displays added (green), removed (red), and changed (yellow) servers between two client configurations. Useful before running `mcpman sync`.
+
+### `group <add|rm|list|delete|install|run>`
+
+Organize servers into named groups for batch operations.
+
+```sh
+mcpman group add work server-a server-b   # tag servers
+mcpman group rm work server-b             # untag server
+mcpman group list                         # show all groups
+mcpman group list work                    # show group members
+mcpman group install work                 # install all in group
+mcpman group run work                     # run all concurrently
+mcpman group delete work                  # remove entire group
+```
+
+Groups are lightweight labels stored in `~/.mcpman/groups.json`. Unlike profiles (full snapshots), groups are just server name lists for convenience.
+
+### `pin <server> [version]`
+
+Pin a server to a specific version to prevent auto-updates.
+
+```sh
+mcpman pin my-server 1.2.3           # pin to exact version
+mcpman pin my-server                 # pin to current version
+mcpman pin --unpin my-server         # remove pin
+mcpman pin --list                    # show all pinned servers
+```
+
+Pinned servers are skipped by `mcpman update` and version check notifications. Pins stored in `~/.mcpman/pins.json`.
+
+### `rollback [index]`
+
+Restore a previous lockfile state from automatic snapshots.
+
+```sh
+mcpman rollback --list               # show snapshot history
+mcpman rollback 0                    # restore most recent snapshot
+mcpman rollback 2                    # restore specific snapshot
+```
+
+Snapshots are created automatically before every lockfile write. Keeps the last 5 snapshots in `~/.mcpman/rollback/`. After rollback, run `mcpman sync` to apply to all clients.
+
 ---
 
 ## Comparison
@@ -389,6 +468,12 @@ Displays: source (npm/smithery/github/local), resolved URL, version, installed t
 | Custom registries | `registry` CRUD | None | None |
 | Shell completions | bash + zsh + fish | None | None |
 | Provenance query | `why` (clients + profiles) | None | None |
+| Env management | Per-server env var CRUD | None | None |
+| Benchmarking | Latency p50/p95 stats | None | None |
+| Config diff | Visual client diff | None | None |
+| Server groups | Batch install/run tags | None | None |
+| Version pinning | `pin`/`unpin` CLI | None | None |
+| Rollback | Auto-snapshot + restore | None | None |
 
 ---
 
