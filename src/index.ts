@@ -12,6 +12,7 @@ import doctor from "./commands/doctor.js";
 import envCmd from "./commands/env.js";
 import exportCmd from "./commands/export-command.js";
 import group from "./commands/group.js";
+import health from "./commands/health.js";
 import importCmd from "./commands/import-command.js";
 import info from "./commands/info.js";
 import init from "./commands/init.js";
@@ -19,7 +20,9 @@ import install from "./commands/install.js";
 import link from "./commands/link.js";
 import list from "./commands/list.js";
 import logs from "./commands/logs.js";
+import migrate from "./commands/migrate.js";
 import notify from "./commands/notify.js";
+import outdated from "./commands/outdated.js";
 import pin from "./commands/pin.js";
 import plugin from "./commands/plugin.js";
 import profiles from "./commands/profiles.js";
@@ -101,6 +104,9 @@ const main = defineCommand({
     dashboard,
     publish,
     team,
+    outdated,
+    migrate,
+    health,
   },
 });
 
