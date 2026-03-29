@@ -1,5 +1,7 @@
 # mcpman
 
+[![SafeSkill 55/100](https://img.shields.io/badge/SafeSkill-55%2F100_Use%20with%20Caution-orange)](https://safeskill.dev/scan/tranhoangtu-it-mcpman)
+
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![npm](https://img.shields.io/badge/npm-CB3837?style=flat-square&logo=npm&logoColor=white)
 
