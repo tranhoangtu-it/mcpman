@@ -8,12 +8,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642195b5e65ec0cc5acb848
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - uses: actions/cache@v4
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: node_modules
           key: ${{ runner.os }}-node-22-${{ hashFiles('package-lock.json') }}
